@@ -15,8 +15,8 @@ class Scrubber:
         self,
         scenario: Scenario,
         data,
-        window_length: int = 10,
-        movement_k: float = 1.0 / 3.0,
+        window_length: int = 32,
+        movement_k: float = 0.5,
     ) -> None:
         """A scrubber for dividing data into windows
         and subsequent processing of data windows
