@@ -88,16 +88,8 @@ class KNNAlgorithm(Algorithm):
 
         # Examining each point.
         # Boundaries are always change points.
-<<<<<<< HEAD
-        first_point = int(len(window) / 4)
-        last_point = int(len(window) * 0.75)
-=======
         first_point = int(len(window) * 0.25)
         last_point = int(len(window) * 0.75)
-
-        for time in range(first_point, last_point):
-            statistics = self.__calculate_statistics_in_point(time, len(window))
->>>>>>> knn-cpd
 
         for time in range(first_point, last_point):
             statistics = self.__calculate_statistics_in_point(time, len(window))
