@@ -47,7 +47,7 @@ class KNNGraph:
 
     def build(self) -> None:
         """
-        Build KNN graph according to the given parameters.
+        Builds KNN graph according to the given parameters.
         """
         for i in range(self.__window_size):
             heap = NNHeap(self.__k, self.__metric, self.__window[-i - 1], self.__delta)

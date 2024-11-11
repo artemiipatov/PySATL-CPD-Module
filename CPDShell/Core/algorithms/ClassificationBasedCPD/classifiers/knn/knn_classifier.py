@@ -1,5 +1,5 @@
 """
-Module for implementation of CPD algorithm based on nearest neighbours.
+Module for implementation of classifier based on nearest neighbours for cpd.
 """
 
 __author__ = "Artemii Patov"
@@ -7,40 +7,37 @@ __copyright__ = "Copyright (c) 2024 Artemii Patov"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import typing as tp
-from collections import deque
 from collections.abc import Iterable
 from math import sqrt
 
 import numpy as np
 
-import CPDShell.Core.algorithms.KNNCPD.knn_graph as knngraph
-from CPDShell.Core.algorithms.abstract_algorithm import Algorithm
+from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_graph import KNNGraph
+from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.iclassifier import Classifier
 
 
-class KNNAlgorithm(Algorithm):
+class KNNAlgorithm(Classifier):
     """
-    The class implementing change point detection algorithm based on nearest neighbours.
+    The class implementing classifier based on nearest neighbours.
     """
 
     def __init__(
         self,
         metric: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
         k=3,
-        threshold: float = 0.5,
         delta: float = 1e-12,
     ) -> None:
         """
-        Initializes a new instance of KNN change point algorithm.
+        Initializes a new instance of KNN classifier for cpd.
 
         :param metric: function for calculating distance between points in time series.
         :param k: number of neighbours in graph relative to each point.
-        :param threshold: threshold that statistics should overcome to fix change point.
         """
         self.__k = k
         self.__metric = metric
-        self.__threshold = threshold
         self.__delta = delta
 
+<<<<<<< HEAD:CPDShell/Core/algorithms/knn_algorithm.py
         self.__change_points: list[int] = []
         self.__change_points_count = 0
 
@@ -81,11 +78,18 @@ class KNNAlgorithm(Algorithm):
         # Preparing.
         self.__change_points: list[int] = []
         self.__change_points_count = 0
+=======
+        self.__window_size = 0
+        self.__knn_graph: KNNGraph | None = None
+>>>>>>> knn-cpd:CPDShell/Core/algorithms/ClassificationBasedCPD/classifiers/knn/knn_classifier.py
 
+    def classify(self, window: Iterable[float | np.float64]) -> None:
         # Building graph.
-        self.__knn_graph = knngraph.KNNGraph(window, self.__metric, self.__k, self.__delta)
+        self.__knn_graph = KNNGraph(window, self.__metric, self.__k, self.__delta)
         self.__knn_graph.build()
+        self.__window_size = len(list(window))
 
+<<<<<<< HEAD:CPDShell/Core/algorithms/knn_algorithm.py
         # Examining each point.
         # Boundaries are always change points.
         first_point = int(len(window) * 0.25)
@@ -101,12 +105,16 @@ class KNNAlgorithm(Algorithm):
                 self.__change_points_count += 1
 
     def __calculate_statistics_in_point(self, time: int, window_size: int) -> float:
+=======
+    def assess_in_point(self, time: int) -> float:
+>>>>>>> knn-cpd:CPDShell/Core/algorithms/ClassificationBasedCPD/classifiers/knn/knn_classifier.py
         """
-        Calculate the statistics of the KNN graph in specified point.
+        Calaulates quality function in specified point.
 
         :param time: index of point in the given sample to calculate statistics relative to it.
-        :param window_size: size of sample to analyze.
         """
+        window_size = self.__window_size
+
         assert self.__knn_graph is not None, "Graph should not be None."
 
         k = self.__k
@@ -140,8 +148,6 @@ class KNNAlgorithm(Algorithm):
         deviation = sqrt(variance)
 
         permutation: np.array = np.arange(window_size)
-        # np.random.shuffle(permutation) # It seems that random permutation spoils the result
-
         random_variable_value = self.__calculate_random_variable(permutation, time, window_size)
 
         if deviation == 0:
@@ -155,17 +161,9 @@ class KNNAlgorithm(Algorithm):
 
         return statistics
 
-    def __check_change_point(self, statistics: float) -> bool:
-        """
-        Check if calculated statistics is more than a given threshold to find out if it is a change point or not.
-
-        :return: True if change point occurs, False otherwise.
-        """
-        return statistics > self.__threshold
-
     def __calculate_random_variable(self, permutation: np.array, t: int, window_size: int) -> int:
         """
-        Calculate a random variable from a permutation and a fixed point.
+        Calculates a random variable from a permutation and a fixed point.
 
         :param permutation: random permutation of observations.
         :param t: fixed point that splits the permutation.

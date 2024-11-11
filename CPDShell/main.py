@@ -4,8 +4,13 @@ from CPDShell.Core.algorithms.bayesian_algorithm import BayesianAlgorithm
 from CPDShell.Core.algorithms.BayesianCPD.detectors.drop_detector import DropDetector
 from CPDShell.Core.algorithms.BayesianCPD.detectors.simple_detector import SimpleDetector
 from CPDShell.Core.algorithms.BayesianCPD.hazards.constant_hazard import ConstantHazard
-from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_likelihood import GaussianLikelihood
+from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_unknown_mean_and_variance import (
+    GaussianUnknownMeanAndVariance,
+)
 from CPDShell.Core.algorithms.BayesianCPD.localizers.simple_localizer import SimpleLocalizer
+from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_classifier import KNNAlgorithm
+from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
+from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
 from CPDShell.shell import CPDShell
@@ -17,35 +22,65 @@ saver = DatasetSaver(Path(), True)
 generated = ScipyDatasetGenerator().generate_datasets(Path(path_string), saver)
 data, expected_change_points = generated[distributions_name]
 
+print("Expected change points:", expected_change_points)
+
+# Graph algorithm demo
 graph_cpd = CPDShell(data)
 graph_cpd.scrubber.window_length = 150
 graph_cpd.scrubber.movement_k = 2.0 / 3.0
-
-print("Expected change points:", expected_change_points)
 
 res_graph = graph_cpd.run_cpd()
 res_graph.visualize(True)
 print("Graph algorithm")
 print(res_graph)
 
-HAZARD_RATE = 200
-LEARNING_WINDOW_SIZE = 30
-THRESHOLD = 0.5
-DROP_THRESHOLD = 0.7
+
+# k-NN based algorithm demo
+def metric(obs1: float, obs2: float) -> float:
+    return abs(obs1 - obs2)
+
+
+K = 5
+KNN_THRESHOLD = 3.5
+OFFSET_COEFF = 0.25
+
+knn_classifier = KNNAlgorithm(metric, K)
+statistic = ThresholdOvercome(KNN_THRESHOLD)
+knn_algorithm = ClassificationAlgorithm(knn_classifier, statistic, OFFSET_COEFF)
+knn_cpd = CPDShell(data, knn_algorithm)
+
+knn_cpd.scrubber.window_length = 16
+knn_cpd.scrubber.movement_k = 0.5
+knn_cpd.scenario.change_point_number = 4
+
+res_knn = knn_cpd.run_cpd()
+res_knn.visualize(True)
+print("k-NN based algorithm")
+print(res_knn)
+
+
+# Bayesian algorithm demo
+BAYESIAN_THRESHOLD = 0.1
+NUM_OF_SAMPLES = 1000
+SAMPLE_SIZE = 500
+BERNOULLI_PROB = 1.0 - 0.5 ** (1.0 / SAMPLE_SIZE)
+HAZARD_RATE = 1 / BERNOULLI_PROB
+LEARNING_SAMPLE_SIZE = 50
+BAYESIAN_DROP_THRESHOLD = 0.7
 
 constant_hazard = ConstantHazard(HAZARD_RATE)
-gaussian_likelihood = GaussianLikelihood()
+gaussian_likelihood = GaussianUnknownMeanAndVariance()
 
-simple_detector = SimpleDetector(THRESHOLD)
-drop_detector = DropDetector(DROP_THRESHOLD)
+simple_detector = SimpleDetector(BAYESIAN_THRESHOLD)
+drop_detector = DropDetector(BAYESIAN_DROP_THRESHOLD)
 
 simple_localizer = SimpleLocalizer()
 
 bayesian_algorithm = BayesianAlgorithm(
-    learning_steps=LEARNING_WINDOW_SIZE,
+    learning_steps=LEARNING_SAMPLE_SIZE,
     likelihood=gaussian_likelihood,
     hazard=constant_hazard,
-    detector=drop_detector,
+    detector=simple_detector,
     localizer=simple_localizer,
 )
 
