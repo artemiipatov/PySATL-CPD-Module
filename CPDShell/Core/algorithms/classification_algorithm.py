@@ -41,6 +41,8 @@ class ClassificationAlgorithm(Algorithm):
         self.__change_points: list[int] = []
         self.__change_points_count = 0
 
+        self.statistics_list: list[float | np.float64] = []
+
     def detect(self, window: Iterable[float | np.float64]) -> int:
         """Finds change points in window.
 
@@ -81,6 +83,7 @@ class ClassificationAlgorithm(Algorithm):
         for time in range(first_point, last_point):
             quality = self.__classifiser.assess_in_point(time)
             assessments.append(quality)
+            self.statistics_list.append(quality)
 
         change_points = self.__test_statistic.get_change_points(assessments)
 

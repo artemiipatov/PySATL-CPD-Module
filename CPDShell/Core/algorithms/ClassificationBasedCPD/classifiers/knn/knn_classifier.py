@@ -37,51 +37,8 @@ class KNNAlgorithm(Classifier):
         self.__metric = metric
         self.__delta = delta
 
-<<<<<<< HEAD:CPDShell/Core/algorithms/knn_algorithm.py
-        self.__change_points: list[int] = []
-        self.__change_points_count = 0
-
-        self.__knn_graph: knngraph.KNNGraph | None = None
-
-        self.statistics_list: list[float | np.float64] = []
-        self.global_time = 0
-
-    def detect(self, window: Iterable[float | np.float64]) -> int:
-        """Finds change points in window.
-
-        :param window: part of global data for finding change points.
-        :return: the number of change points in the window.
-        """
-        self.__process_data(False, window)
-        return self.__change_points_count
-
-    def localize(self, window: Iterable[float | np.float64]) -> list[int]:
-        """Finds coordinates of change points (localizes them) in window.
-
-        :param window: part of global data for finding change points.
-        :return: list of window change points.
-        """
-        self.__process_data(window)
-        return self.__change_points.copy()
-
-    def __process_data(self, window: Iterable[float | np.float64]) -> None:
-        """
-        Processes a window of data to detect/localize all change points depending on working mode.
-
-        :param window: part of global data for change points analysis.
-        """
-        sample = deque(window)
-        sample_size = len(sample)
-        if sample_size == 0:
-            return
-
-        # Preparing.
-        self.__change_points: list[int] = []
-        self.__change_points_count = 0
-=======
         self.__window_size = 0
         self.__knn_graph: KNNGraph | None = None
->>>>>>> knn-cpd:CPDShell/Core/algorithms/ClassificationBasedCPD/classifiers/knn/knn_classifier.py
 
     def classify(self, window: Iterable[float | np.float64]) -> None:
         # Building graph.
@@ -89,25 +46,7 @@ class KNNAlgorithm(Classifier):
         self.__knn_graph.build()
         self.__window_size = len(list(window))
 
-<<<<<<< HEAD:CPDShell/Core/algorithms/knn_algorithm.py
-        # Examining each point.
-        # Boundaries are always change points.
-        first_point = int(len(window) * 0.25)
-        last_point = int(len(window) * 0.75)
-
-        for time in range(first_point, last_point):
-            statistics = self.__calculate_statistics_in_point(time, len(window))
-            self.statistics_list.append(statistics)
-            self.global_time += 1
-            # print(time, statistics)
-            if self.__check_change_point(statistics):
-                self.__change_points.append(time)
-                self.__change_points_count += 1
-
-    def __calculate_statistics_in_point(self, time: int, window_size: int) -> float:
-=======
     def assess_in_point(self, time: int) -> float:
->>>>>>> knn-cpd:CPDShell/Core/algorithms/ClassificationBasedCPD/classifiers/knn/knn_classifier.py
         """
         Calaulates quality function in specified point.
 
