@@ -1,5 +1,5 @@
 """
-Module for implementation of kmeans classifier for cpd.
+Module for implementation of random forest classifier for cpd.
 """
 
 __author__ = "Artemii Patov"
@@ -11,14 +11,14 @@ from collections.abc import Iterable
 from math import sqrt
 
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.ensemble import RandomForestClassifier
 
 from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.iclassifier import Classifier
 
 
-class KMeansAlgorithm(Classifier):
+class RFClassifier(Classifier):
     """
-    The class implementing k-means classifier for cpd.
+    The class implementing random forest classifier for cpd.
     """
 
     def __init__(
@@ -27,8 +27,8 @@ class KMeansAlgorithm(Classifier):
         """
         Initializes a new instance of k-means classifier for cpd.
         """
-        self.__model: KMeans | None = None
-        self.__window: list[float | np.float64] | None = None
+        self.__model: RandomForestClassifier | None = None
+        self.__window: list[float | np.float64] = None
 
     @property
     def window(self) -> list[float | np.float64] | None:
@@ -37,9 +37,6 @@ class KMeansAlgorithm(Classifier):
     @window.setter
     def window(self, val: Iterable[float | np.float64]) -> None:
         self.__window = list(val)
-        k_means = KMeans(n_clusters=2)
-        window_reshaped = np.array(self.__window).reshape(-1, 1)
-        self.__model = k_means.fit(window_reshaped)
 
     def classify_barrier(self, time: int) -> float:
         """
@@ -47,12 +44,14 @@ class KMeansAlgorithm(Classifier):
 
         :param time: index of point in the given sample to calculate statistics relative to it.
         """
-        window_size = len(self.__window)
-        length = min(window_size - time, time)
-        start = max(0, time - length)
-        end = min(window_size, time + length)
-        labels = self.__model.labels_
-        left = sum(labels[start:time])
-        right = sum(labels[time:end])
+        train_sample_X = [[x] for i, x in enumerate(self.window) if i % 2 == 0]
+        train_sample_Y = [int(i > time) for i in range(0, self.__window, 2)]
+        test_sample = [[x] for i, x in enumerate(self.window) if i % 2 != 0]
 
-        return abs(right - left) / length
+        self.__model = RandomForestClassifier()
+        self.__model.fit(train_sample_X, train_sample_Y)
+        prediction = self.__model.predict(test_sample)
+        right = prediction.sum()
+        left = len(prediction) - right
+        
+        return 2 * min(right, left) / len(prediction)

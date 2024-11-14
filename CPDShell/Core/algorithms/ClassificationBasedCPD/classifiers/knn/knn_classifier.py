@@ -37,22 +37,26 @@ class KNNAlgorithm(Classifier):
         self.__metric = metric
         self.__delta = delta
 
-        self.__window_size = 0
+        self.__window
         self.__knn_graph: KNNGraph | None = None
 
-    def classify(self, window: Iterable[float | np.float64]) -> None:
-        # Building graph.
-        self.__knn_graph = KNNGraph(window, self.__metric, self.__k, self.__delta)
+    @property
+    def window(self) -> list[float | np.float64] | None:
+        return self.__window
+    
+    @window.setter
+    def window(self, val: Iterable[float | np.float64]) -> None:
+        self.__window = list(val)
+        self.__knn_graph = KNNGraph(val, self.__metric, self.__k, self.__delta)
         self.__knn_graph.build()
-        self.__window_size = len(list(window))
 
-    def assess_in_point(self, time: int) -> float:
+    def classify_barrier(self, time: int) -> float:
         """
         Calaulates quality function in specified point.
 
         :param time: index of point in the given sample to calculate statistics relative to it.
         """
-        window_size = self.__window_size
+        window_size = len(self.__window)
 
         assert self.__knn_graph is not None, "Graph should not be None."
 

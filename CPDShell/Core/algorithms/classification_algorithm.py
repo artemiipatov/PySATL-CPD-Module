@@ -81,7 +81,7 @@ class ClassificationAlgorithm(Algorithm):
         assessments = []
 
         for time in range(first_point, last_point):
-            quality = self.__classifiser.assess_in_point(time)
+            quality = self.__classifiser.classify_barrier(time)
             assessments.append(quality)
             self.statistics_list.append(quality)
 
