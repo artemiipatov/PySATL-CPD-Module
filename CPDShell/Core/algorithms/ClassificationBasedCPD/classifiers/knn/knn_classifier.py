@@ -37,7 +37,7 @@ class KNNAlgorithm(Classifier):
         self.__metric = metric
         self.__delta = delta
 
-        self.__window
+        self.__window: list[float | np.float64] = None
         self.__knn_graph: KNNGraph | None = None
 
     @property
@@ -73,18 +73,25 @@ class KNNAlgorithm(Classifier):
 
         h = 4 * (n_1 - 1) * (n_2 - 1) / ((n - 2) * (n - 3))
 
-        sum_1 = (1 / n) * sum(
+        sum_1 = (1 / n) * (2 * sum(
             self.__knn_graph.check_for_neighbourhood(i, j) * self.__knn_graph.check_for_neighbourhood(j, i)
             for i in range(window_size)
-            for j in range(window_size)
-        )
+            for j in range(i + 1, window_size)
+        ) + sum(
+            self.__knn_graph.check_for_neighbourhood(i, i)
+            for i in range(window_size)
+        ))
 
-        sum_2 = (1 / n) * sum(
+        sum_2 = (1 / n) * (2 * sum(
             self.__knn_graph.check_for_neighbourhood(j, i) * self.__knn_graph.check_for_neighbourhood(m, i)
             for i in range(window_size)
             for j in range(window_size)
-            for m in range(window_size)
-        )
+            for m in range(j + 1, window_size)
+        ) + sum(
+            self.__knn_graph.check_for_neighbourhood(j, i)
+            for i in range(window_size)
+            for j in range(window_size)
+        ))
 
         expectation = 4 * k * n_1 * n_2 / (n - 1)
         variance = (expectation / k) * (h * (sum_1 + k - (2 * k**2 / (n - 1))) + (1 - h) * (sum_2 - k**2))
