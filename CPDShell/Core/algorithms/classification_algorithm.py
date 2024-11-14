@@ -72,7 +72,7 @@ class ClassificationAlgorithm(Algorithm):
         if sample_size == 0:
             return
 
-        self.__classifiser.classify(window)
+        self.__classifiser.window = window
 
         # Examining each point.
         # Boundaries are always change points.

@@ -45,7 +45,7 @@ class RFClassifier(Classifier):
         :param time: index of point in the given sample to calculate statistics relative to it.
         """
         train_sample_X = [[x] for i, x in enumerate(self.window) if i % 2 == 0]
-        train_sample_Y = [int(i > time) for i in range(0, self.__window, 2)]
+        train_sample_Y = [int(i > time) for i in range(0, len(self.__window), 2)]
         test_sample = [[x] for i, x in enumerate(self.window) if i % 2 != 0]
 
         self.__model = RandomForestClassifier()
