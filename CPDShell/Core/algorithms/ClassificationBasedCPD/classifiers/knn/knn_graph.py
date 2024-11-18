@@ -54,6 +54,9 @@ class KNNGraph:
             heap.build(self.__window)
             self.__graph.appendleft(heap)
 
+    def get_neighbours(self, obs_index: int) -> list[int]:
+        return self.__graph[obs_index].get_neighbours_indices()
+
     def check_for_neighbourhood(self, first_index: int, second_index: int) -> bool:
         """
         Checks if the second observation is among the k nearest neighbours of the first observation.

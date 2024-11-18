@@ -62,6 +62,9 @@ class NNHeap:
 
         return any(predicate(i) for i in self.__heap)
 
+    def get_neighbours_indices(self) -> list[int]:
+        return [n.observation.time for n in self.__heap]
+
     def __add(self, observation: Observation) -> None:
         """
         Adds observation to heap.
