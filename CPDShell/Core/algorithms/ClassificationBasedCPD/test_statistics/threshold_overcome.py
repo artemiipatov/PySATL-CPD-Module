@@ -28,4 +28,3 @@ class ThresholdOvercome(StatisticTest):
         :return: Change points in the current window.
         """
         return [i for i, v in enumerate(classifier_assesments) if v > self.__threshold]
-        # return list(filter(lambda x : x > self.__threshold, classifier_assesments))

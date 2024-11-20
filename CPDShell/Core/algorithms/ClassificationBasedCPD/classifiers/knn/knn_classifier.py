@@ -85,9 +85,8 @@ class KNNAlgorithm(Classifier):
             for i in self.__knn_graph.get_neighbours(j)
             for m in range(j + 1, window_size)
         ) + sum(
-            self.__knn_graph.check_for_neighbourhood(j, i)
+            len(self.__knn_graph.get_neighbours(i))
             for i in range(window_size)
-            for j in range(window_size)
         ))
 
         expectation = 4 * k * n_1 * n_2 / (n - 1)
