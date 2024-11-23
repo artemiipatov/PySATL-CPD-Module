@@ -1,15 +1,17 @@
-from pathlib import Path
-from collections.abc import Sequence
 import os
+from collections.abc import Sequence
+from pathlib import Path
+
 import numpy
-from CPDShell.Core.scrubber.scrubber import Scrubber
+
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
-from CPDShell.shell import CPDShell
+from CPDShell.Core.scrubber.scrubber import Scrubber
 from CPDShell.labeled_data import LabeledCPData
+from CPDShell.shell import CPDShell
 
 
-class KNNSignificance():
+class KNNSignificance:
     def __init__(
         self,
         knn_algorithm: ClassificationAlgorithm,
@@ -18,7 +20,7 @@ class KNNSignificance():
         scrubber_class: type[Scrubber] = Scrubber,
         significance_level: float = 0.05,
         with_localization: bool = False,
-        delta: float = 0.005
+        delta: float = 0.005,
     ) -> None:
         self.__knn_algorithm = knn_algorithm
         self.__window_size = window_size
@@ -42,7 +44,7 @@ class KNNSignificance():
             if cur_sig_level > self.__significance_level:
                 cur_threshold = cur_threshold + cur_difference
                 cur_sig_level = self.__calculate_significance_level(cur_threshold, dataset)
-                
+
                 if cur_sig_level < self.__significance_level + self.__delta:
                     cur_difference /= 2.0
             else:
@@ -71,28 +73,28 @@ class KNNSignificance():
                 change_points_count += len(result_container.result)
                 overall_count += len(result_container.data)
             else:
-                change_points_count += (len(result_container.result) > 0)
+                change_points_count += len(result_container.result) > 0
                 overall_count += 1
 
         return change_points_count / overall_count
 
-    def __get_all_data(self, dir: Path) -> list[Sequence[float | numpy.float64]]:
-        samples = self.__get_all_sample_dirs(dir)
+    def __get_all_data(self, dataset_dir: Path) -> list[Sequence[float | numpy.float64]]:
+        samples = self.__get_all_sample_dirs(dataset_dir)
         dataset = [LabeledCPData.read_generated_datasets(p)["normal"].raw_data for p in samples]
 
-        return dataset        
+        return dataset
 
-    def __get_all_sample_dirs(self, dir: Path) -> list[Path]:
-        root_content = os.listdir(dir)
+    def __get_all_sample_dirs(self, dataset_dir: Path) -> list[Path]:
+        root_content = os.listdir(dataset_dir)
         sample_paths = []
-        
+
         for file in root_content:
-            if not os.path.isdir(dir / file):
+            if not os.path.isdir(dataset_dir / file):
                 continue
 
-            if file.startswith('sample'):
-                sample_paths.append(dir / file)
+            if file.startswith("sample"):
+                sample_paths.append(dataset_dir / file)
             else:
-                sample_paths.extend(self.__get_all_sample_dirs(dir / file))
+                sample_paths.extend(self.__get_all_sample_dirs(dataset_dir / file))
 
         return sample_paths
