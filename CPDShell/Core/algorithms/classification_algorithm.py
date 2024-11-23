@@ -12,7 +12,7 @@ import numpy as np
 
 from CPDShell.Core.algorithms.abstract_algorithm import Algorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.iclassifier import Classifier
-from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import StatisticTest
+from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import TestStatistic
 
 
 class ClassificationAlgorithm(Algorithm):
@@ -20,28 +20,32 @@ class ClassificationAlgorithm(Algorithm):
     The class implementing change point detection algorithm based on classification.
     """
 
-    def __init__(
-        self,
-        classifier: Classifier,
-        test_statistic: StatisticTest,
-        shift_coeff: float
-    ) -> None:
+    def __init__(self, classifier: Classifier, test_statistic: TestStatistic, indent_coeff: float) -> None:
         """
         Initializes a new instance of classification based change point detection algorithm.
 
         :param classifier: Classifier for sample classification.
         :param test_statistic: Criterion to separate change points from other points in sample.
-        :param shift_coeff: Coefficient for evaluating indent from window borders.
-        The shift is calculated by multiplying the given coefficient by the size of window.
+        :param indent_coeff: Coefficient for evaluating indent from window borders.
+        The indentation is calculated by multiplying the given coefficient by the size of window.
         """
-        self.__classifiser = classifier
         self.__test_statistic = test_statistic
-        self.__shift_coeff = shift_coeff
+
+        self.__classifiser = classifier
+        self.__shift_coeff = indent_coeff
 
         self.__change_points: list[int] = []
         self.__change_points_count = 0
 
         self.statistics_list: list[float | np.float64] = []
+
+    @property
+    def test_statistic(self) -> TestStatistic:
+        return self.__test_statistic
+
+    @test_statistic.setter
+    def test_statistic(self, test_statistic) -> None:
+        self.__test_statistic = test_statistic
 
     def detect(self, window: Iterable[float | np.float64]) -> int:
         """Finds change points in window.
@@ -49,7 +53,7 @@ class ClassificationAlgorithm(Algorithm):
         :param window: part of global data for finding change points.
         :return: the number of change points in the window.
         """
-        self.__process_data(False, window)
+        self.__process_data(window)
         return self.__change_points_count
 
     def localize(self, window: Iterable[float | np.float64]) -> list[int]:
@@ -72,7 +76,7 @@ class ClassificationAlgorithm(Algorithm):
         if sample_size == 0:
             return
 
-        self.__classifiser.window = window
+        self.__classifiser.classify(window)
 
         # Examining each point.
         # Boundaries are always change points.
@@ -81,7 +85,7 @@ class ClassificationAlgorithm(Algorithm):
         assessments = []
 
         for time in range(first_point, last_point):
-            quality = self.__classifiser.classify_barrier(time)
+            quality = self.__classifiser.assess_barrier(time)
             assessments.append(quality)
             self.statistics_list.append(quality)
 

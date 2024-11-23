@@ -25,15 +25,16 @@ class KNNGraph:
         self,
         window: Iterable[float | np.float64],
         metric: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
-        k=3,
+        k=7,
         delta=1e-12,
     ) -> None:
         """
         Initializes a new instance of KNN graph.
 
         :param window: an overall sample the graph is based on.
-        :param metric: function for calculating distance between points in time series.
+        :param metric: function for calculating the distance between two points in time series.
         :param k: number of neighbours in graph relative to each point.
+        :param delta: delta for comparing floats.
         """
         self.__window: list[Observation] = [Observation(t, v) for t, v in enumerate(window)]
         self.__metric: tp.Callable[[Observation, Observation], float] = lambda obs1, obs2: metric(

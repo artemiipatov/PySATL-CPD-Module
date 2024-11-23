@@ -1,8 +1,16 @@
+"""
+Module for Classification CPD algorithm's test statistic abstract base class.
+"""
+
+__author__ = "Artemii Patov"
+__copyright__ = "Copyright (c) 2024 Artemii Patov"
+__license__ = "SPDX-License-Identifier: MIT"
+
 from abc import ABC, abstractmethod
 
 
-class StatisticTest(ABC):
-    """Abstract class for change point detection algorithms"""
+class TestStatistic(ABC):
+    """Test statistic's abstract base class."""
 
     @abstractmethod
     def get_change_points(self, classifier_assesments: list[float]) -> list[int]:

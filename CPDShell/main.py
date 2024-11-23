@@ -8,11 +8,11 @@ from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_unknown_mean_and_
     GaussianUnknownMeanAndVariance,
 )
 from CPDShell.Core.algorithms.BayesianCPD.localizers.simple_localizer import SimpleLocalizer
+from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_classifier import KNNAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.svm.svm_classifier import SVMAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.rf.rf_classifier import RFClassifier
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
-from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
 from CPDShell.shell import CPDShell

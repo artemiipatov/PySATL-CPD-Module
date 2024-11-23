@@ -6,9 +6,7 @@ __author__ = "Artemii Patov"
 __copyright__ = "Copyright (c) 2024 Artemii Patov"
 __license__ = "SPDX-License-Identifier: MIT"
 
-import typing as tp
 from collections.abc import Iterable
-from math import sqrt
 
 import numpy as np
 from sklearn.cluster import KMeans
@@ -30,18 +28,17 @@ class KMeansAlgorithm(Classifier):
         self.__model: KMeans | None = None
         self.__window: list[float | np.float64] | None = None
 
-    @property
-    def window(self) -> list[float | np.float64] | None:
-        return self.__window
-    
-    @window.setter
-    def window(self, val: Iterable[float | np.float64]) -> None:
-        self.__window = list(val)
+    def classify(self, window: Iterable[float | np.float64]) -> None:
+        """Applies classificator to the given sample.
+
+        :param window: part of global data for finding change points
+        """
+        self.__window = list(window)
         k_means = KMeans(n_clusters=2)
         window_reshaped = np.array(self.__window).reshape(-1, 1)
         self.__model = k_means.fit(window_reshaped)
 
-    def classify_barrier(self, time: int) -> float:
+    def assess_barrier(self, time: int) -> float:
         """
         Calaulates quality function in specified point.
 

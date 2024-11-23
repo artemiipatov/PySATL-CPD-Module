@@ -12,8 +12,8 @@ from math import sqrt
 
 import numpy as np
 
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_graph import KNNGraph
 from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.iclassifier import Classifier
+from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_graph import KNNGraph
 
 
 class KNNAlgorithm(Classifier):
@@ -24,7 +24,7 @@ class KNNAlgorithm(Classifier):
     def __init__(
         self,
         metric: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
-        k=3,
+        k=7,
         delta: float = 1e-12,
     ) -> None:
         """
@@ -32,6 +32,7 @@ class KNNAlgorithm(Classifier):
 
         :param metric: function for calculating distance between points in time series.
         :param k: number of neighbours in graph relative to each point.
+        :param delta: delta for comparing floats.
         """
         self.__k = k
         self.__metric = metric
@@ -40,17 +41,16 @@ class KNNAlgorithm(Classifier):
         self.__window: list[float | np.float64] = None
         self.__knn_graph: KNNGraph | None = None
 
-    @property
-    def window(self) -> list[float | np.float64] | None:
-        return self.__window
-    
-    @window.setter
-    def window(self, val: Iterable[float | np.float64]) -> None:
-        self.__window = list(val)
-        self.__knn_graph = KNNGraph(val, self.__metric, self.__k, self.__delta)
+    def classify(self, window: Iterable[float | np.float64]) -> None:
+        """Applies classificator to the given sample.
+
+        :param window: part of global data for finding change points.
+        """
+        self.__window = list(window)
+        self.__knn_graph = KNNGraph(window, self.__metric, self.__k, self.__delta)
         self.__knn_graph.build()
 
-    def classify_barrier(self, time: int) -> float:
+    def assess_barrier(self, time: int) -> float:
         """
         Calaulates quality function in specified point.
 
@@ -79,15 +79,16 @@ class KNNAlgorithm(Classifier):
             for j in self.__knn_graph.get_neighbours(i)
         )
 
-        sum_2 = (1 / n) * (2 * sum(
-            self.__knn_graph.check_for_neighbourhood(m, i)
-            for j in range(window_size)
-            for i in self.__knn_graph.get_neighbours(j)
-            for m in range(j + 1, window_size)
-        ) + sum(
-            len(self.__knn_graph.get_neighbours(i))
-            for i in range(window_size)
-        ))
+        sum_2 = (1 / n) * (
+            2
+            * sum(
+                self.__knn_graph.check_for_neighbourhood(m, i)
+                for j in range(window_size)
+                for i in self.__knn_graph.get_neighbours(j)
+                for m in range(j + 1, window_size)
+            )
+            + sum(len(self.__knn_graph.get_neighbours(i)) for i in range(window_size))
+        )
 
         expectation = 4 * k * n_1 * n_2 / (n - 1)
         variance = (expectation / k) * (h * (sum_1 + k - (2 * k**2 / (n - 1))) + (1 - h) * (sum_2 - k**2))

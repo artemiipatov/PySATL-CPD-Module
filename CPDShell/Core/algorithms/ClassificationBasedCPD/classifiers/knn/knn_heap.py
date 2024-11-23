@@ -31,6 +31,7 @@ class NNHeap:
         :param size: size of the heap.
         :param metric: function for calculating distance between two observations.
         :param main_observation: the central point relative to which the nearest neighbours are sought.
+        :param delta: delta for comparing floats.
         """
         self.__size = size
         self.__metric = metric

@@ -1,19 +1,20 @@
 """
-Module for implementation of CPD algorithm based on nearest neighbours.
+Module for implementation of test statistic based on threshold overcome.
 """
 
 __author__ = "Artemii Patov"
 __copyright__ = "Copyright (c) 2024 Artemii Patov"
 __license__ = "SPDX-License-Identifier: MIT"
 
-from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import StatisticTest
+from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import TestStatistic
 
 
-class ThresholdOvercome(StatisticTest):
-    def __init__(
-        self,
-        threshold: float
-    ) -> None:
+class ThresholdOvercome(TestStatistic):
+    """
+    The class implementing test statistic based on threshold overcome.
+    """
+
+    def __init__(self, threshold: float) -> None:
         """
         Initializes a new instance of threshold overcome criterion.
 
