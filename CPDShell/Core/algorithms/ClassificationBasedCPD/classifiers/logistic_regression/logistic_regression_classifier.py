@@ -1,31 +1,27 @@
 """
-Module for implementation of svm classifier for cpd.
+Module for implementation of classifier based on logistic regression for cpd.
 """
 
 __author__ = "Artemii Patov"
 __copyright__ = "Copyright (c) 2024 Artemii Patov"
 __license__ = "SPDX-License-Identifier: MIT"
 
-import typing as tp
-
 import numpy as np
-from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 
 from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.iclassifier import Classifier
 
 
-class SVMClassifier(Classifier):
+class LogisticRegressionClassifier(Classifier):
     """
-    The class implementing svm classifier for cpd.
+    The class implementing classifier based on logistic regression for cpd.
     """
 
-    def __init__(self, kernel: tp.Literal["linear", "poly", "rbf", "sigmoid", "precomputed"] = "rbf") -> None:
+    def __init__(self) -> None:
         """
-        Initializes a new instance of svm classifier for cpd.
-        :param kernel: specifies the kernel type to be used in the algorithm. If none is given, 'rbf' will be used.
+        Initializes a new instance of classifier based on logistic regression for cpd.
         """
-        self.__kernel: tp.Literal["linear", "poly", "rbf", "sigmoid", "precomputed"] = kernel
-        self.__model: SVC | None = None
+        self.__model: LogisticRegression | None = None
 
     def train(self, sample: list[list[float | np.float64]], barrier: int) -> None:
         """Trains classifier on the given sample.
@@ -34,7 +30,7 @@ class SVMClassifier(Classifier):
         :param barrier: index of observation that splits the given sample.
         """
         classes = [0 if i <= barrier else 1 for i in range(len(sample))]
-        self.__model = SVC(kernel=self.__kernel)
+        self.__model = LogisticRegression()
         self.__model.fit(sample, classes)
 
     def predict(self, sample: list[list[float | np.float64]]) -> np.ndarray:

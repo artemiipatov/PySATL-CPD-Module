@@ -8,24 +8,21 @@ from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_unknown_mean_and_
     GaussianUnknownMeanAndVariance,
 )
 from CPDShell.Core.algorithms.BayesianCPD.localizers.simple_localizer import SimpleLocalizer
-from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.knn.knn_classifier import KNNAlgorithm
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.svm.svm_classifier import SVMAlgorithm
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.rf.rf_classifier import RFClassifier
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
+from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
 from CPDShell.shell import CPDShell
 from CPDShell.labeled_data import LabeledCPData
 
-# path_string = "tests/test_CPDShell/test_configs/test_config_exp.yml"
-# distributions_name = "exp"
+path_string = "tests/test_CPDShell/test_configs/test_config_exp.yml"
+distributions_name = "exp"
 
-# saver = DatasetSaver(Path(), True)
-# generated = ScipyDatasetGenerator().generate_datasets(Path(path_string), saver)
-# data, expected_change_points = generated[distributions_name]
+saver = DatasetSaver(Path(), True)
+generated = ScipyDatasetGenerator().generate_datasets(Path(path_string), saver)
+data, expected_change_points = generated[distributions_name]
 
-# print("Expected change points:", expected_change_points)
+print("Expected change points:", expected_change_points)
 
 # # Graph algorithm demo
 # graph_cpd = CPDShell(data)
@@ -38,23 +35,22 @@ from CPDShell.labeled_data import LabeledCPData
 # print(res_graph)
 
 
-# # k-NN based algorithm demo
-# def metric(obs1: float, obs2: float) -> float:
-#     return abs(obs1 - obs2)
+# k-NN based algorithm demo
+def metric(obs1: float, obs2: float) -> float:
+    return abs(obs1 - obs2)
 
 
-# K = 5
-# KNN_THRESHOLD = 3.5
-# OFFSET_COEFF = 0.25
+K = 5
+KNN_THRESHOLD = 3.5
+OFFSET_COEFF = 0.25
 
-# knn_classifier = KNNAlgorithm(metric, K)
-# statistic = ThresholdOvercome(KNN_THRESHOLD)
-# knn_algorithm = ClassificationAlgorithm(knn_classifier, statistic, OFFSET_COEFF)
-# knn_cpd = CPDShell(data, knn_algorithm)
+statistic = ThresholdOvercome(KNN_THRESHOLD)
+knn_algorithm = KNNAlgorithm(metric, statistic, OFFSET_COEFF, K)
+knn_cpd = CPDShell(data, knn_algorithm)
 
-# knn_cpd.scrubber.window_length = 16
-# knn_cpd.scrubber.movement_k = 0.5
-# knn_cpd.scenario.change_point_number = 4
+knn_cpd.scrubber.window_length = 32
+knn_cpd.scrubber.movement_k = 0.5
+knn_cpd.scenario.change_point_number = 100
 
 # res_knn = knn_cpd.run_cpd()
 # res_knn.visualize(True)
@@ -95,28 +91,28 @@ from CPDShell.labeled_data import LabeledCPData
 # print(res_svm)
 
 
-ROOT_DIR = Path()
-SOURCE_DIR = f"experiments/stage_2_knn"
-DISTR_NAME = "normal-exponential"
-sample_dir = ROOT_DIR / SOURCE_DIR / f"{DISTR_NAME}/sample_0"
-cpd_data = LabeledCPData.read_generated_datasets(sample_dir)[DISTR_NAME].raw_data
+# ROOT_DIR = Path()
+# SOURCE_DIR = f"experiments/stage_2_knn"
+# DISTR_NAME = "normal-exponential"
+# sample_dir = ROOT_DIR / SOURCE_DIR / f"{DISTR_NAME}/sample_0"
+# cpd_data = LabeledCPData.read_generated_datasets(sample_dir)[DISTR_NAME].raw_data
 
-RF_THRESHOLD = 0.8
-RF_OFFSET_COEFF = 0.25
+# RF_THRESHOLD = 0.8
+# RF_OFFSET_COEFF = 0.25
 
-rf_algorithm = RFClassifier()
-statistic = ThresholdOvercome(RF_THRESHOLD)
-rf_algorithm = ClassificationAlgorithm(rf_algorithm, statistic, RF_OFFSET_COEFF)
-rf_cpd = CPDShell(cpd_data, rf_algorithm)
+# rf_algorithm = RFClassifier()
+# statistic = ThresholdOvercome(RF_THRESHOLD)
+# rf_algorithm = ClassificationAlgorithm(rf_algorithm, statistic, RF_OFFSET_COEFF)
+# rf_cpd = CPDShell(cpd_data, rf_algorithm)
 
-rf_cpd.scrubber.window_length = 48
-rf_cpd.scrubber.movement_k = 0.5
-rf_cpd.scenario.change_point_number = 200
+# rf_cpd.scrubber.window_length = 48
+# rf_cpd.scrubber.movement_k = 0.5
+# rf_cpd.scenario.change_point_number = 200
 
-res_rf = rf_cpd.run_cpd()
-res_rf.visualize(True)
-print("RF based algorithm")
-print(res_rf)
+# res_rf = rf_cpd.run_cpd()
+# res_rf.visualize(True)
+# print("RF based algorithm")
+# print(res_rf)
 
 
 

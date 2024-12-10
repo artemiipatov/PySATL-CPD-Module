@@ -33,8 +33,9 @@ class KNNGraph:
 
         :param window: an overall sample the graph is based on.
         :param metric: function for calculating the distance between two points in time series.
-        :param k: number of neighbours in graph relative to each point.
-        :param delta: delta for comparing floats.
+        :param k: number of neighbours in the knn graph relative to each point.
+        Default is 7, which is generally the most optimal value (based on the experiments results).
+        :param delta: delta for comparing float values of the given observations.
         """
         self.__window: list[Observation] = [Observation(t, v) for t, v in enumerate(window)]
         self.__metric: tp.Callable[[Observation, Observation], float] = lambda obs1, obs2: metric(
@@ -43,14 +44,13 @@ class KNNGraph:
         self.__k = k
         self.__delta = delta
 
-        self.__window_size = len(window)
-        self.__graph: deque[NNHeap] = deque(maxlen=self.__window_size)
+        self.__graph: deque[NNHeap] = deque(maxlen=len(self.__window))
 
     def build(self) -> None:
         """
         Builds KNN graph according to the given parameters.
         """
-        for i in range(self.__window_size):
+        for i in range(len(self.__window)):
             heap = NNHeap(self.__k, self.__metric, self.__window[-i - 1], self.__delta)
             heap.build(self.__window)
             self.__graph.appendleft(heap)

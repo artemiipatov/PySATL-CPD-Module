@@ -22,10 +22,10 @@ class ThresholdOvercome(TestStatistic):
         """
         self.__threshold = threshold
 
-    def get_change_points(self, classifier_assesments: list[float]) -> list[int]:
+    def get_change_points(self, classifier_assessments: list[float]) -> list[int]:
         """Separates change points from other points in sample based on some criterion.
 
-        :param classifier_assesments: List of quality assessments evaluated in each point of the sample.
+        :param classifier_assessments: List of quality assessments evaluated in each point of the sample.
         :return: Change points in the current window.
         """
-        return [i for i, v in enumerate(classifier_assesments) if v > self.__threshold]
+        return [i for i, v in enumerate(classifier_assessments) if v > self.__threshold]

@@ -31,7 +31,7 @@ class NNHeap:
         :param size: size of the heap.
         :param metric: function for calculating distance between two observations.
         :param main_observation: the central point relative to which the nearest neighbours are sought.
-        :param delta: delta for comparing floats.
+        :param delta: delta for comparing float values of the given observations.
         """
         self.__size = size
         self.__metric = metric
@@ -75,7 +75,7 @@ class NNHeap:
         if observation is self.__main_observation:
             return
 
-        # Sign conversion is needed to convert smallest element heap to greatest element heap.
+        # Sign conversion is needed to convert the smallest element heap to the greatest element heap.
         neg_distance = -self.__metric(self.__main_observation, observation)
         neighbour = Neighbour(neg_distance, observation)
 

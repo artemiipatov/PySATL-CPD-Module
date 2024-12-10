@@ -6,8 +6,6 @@ __author__ = "Artemii Patov"
 __copyright__ = "Copyright (c) 2024 Artemii Patov"
 __license__ = "SPDX-License-Identifier: MIT"
 
-from collections.abc import Iterable
-
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
@@ -19,36 +17,25 @@ class RFClassifier(Classifier):
     The class implementing random forest classifier for cpd.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         """
-        Initializes a new instance of k-means classifier for cpd.
+        Initializes a new instance of RF classifier for cpd.
         """
         self.__model: RandomForestClassifier | None = None
-        self.__window: list[float | np.float64] = None
 
-    def classify(self, window: Iterable[float | np.float64]) -> None:
-        """Applies classificator to the given sample.
+    def train(self, sample: list[list[float | np.float64]], barrier: int) -> None:
+        """Trains classifier on the given sample.
 
-        :param window: part of global data for finding change points.
+        :param sample: sample for training classifier.
+        :param barrier: index of observation that splits the given sample.
         """
-        self.__window = list(window)
-
-    def assess_barrier(self, time: int) -> float:
-        """
-        Calaulates quality function in specified point.
-
-        :param time: index of point in the given sample to calculate statistics relative to it.
-        """
-        train_sample_X = [[x] for i, x in enumerate(self.window) if i % 2 == 0]
-        train_sample_Y = [int(i > time) for i in range(0, len(self.__window), 2)]
-        test_sample = [[x] for i, x in enumerate(self.window) if i % 2 != 0]
-
+        classes = [0 if i <= barrier else 1 for i in range(len(sample))]
         self.__model = RandomForestClassifier()
-        self.__model.fit(train_sample_X, train_sample_Y)
-        prediction = self.__model.predict(test_sample)
-        right = prediction.sum()
-        left = len(prediction) - right
+        self.__model.fit(sample, classes)
 
-        return 2 * min(right, left) / len(prediction)
+    def predict(self, sample: list[list[float | np.float64]]) -> np.ndarray:
+        """Classifies observations in the given sample based on training with barrier.
+
+        :param sample: sample to classify.
+        """
+        return self.__model.predict(sample)

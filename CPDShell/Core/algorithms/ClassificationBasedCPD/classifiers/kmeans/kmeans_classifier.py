@@ -1,5 +1,5 @@
 """
-Module for implementation of kmeans classifier for cpd.
+Module for implementation of k-means classifier for cpd.
 """
 
 __author__ = "Artemii Patov"
@@ -19,37 +19,31 @@ class KMeansAlgorithm(Classifier):
     The class implementing k-means classifier for cpd.
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         """
         Initializes a new instance of k-means classifier for cpd.
         """
         self.__model: KMeans | None = None
-        self.__window: list[float | np.float64] | None = None
+        self.__sample: list[float | np.float64] | None = None
 
-    def classify(self, window: Iterable[float | np.float64]) -> None:
-        """Applies classificator to the given sample.
+    def train(self, sample: Iterable[float | np.float64], barrier: int) -> None:
+        """Trains classifier on the given sample.
 
-        :param window: part of global data for finding change points
+        :param sample: sample for training classifier.
+        :param barrier: index of observation that splits the given sample.
         """
-        self.__window = list(window)
+        sample_list = list(sample)
+        if self.__sample == sample_list:
+            return
+
         k_means = KMeans(n_clusters=2)
-        window_reshaped = np.array(self.__window).reshape(-1, 1)
+        self.__sample = sample_list
+        window_reshaped = np.array(sample_list).reshape(-1, 1)
         self.__model = k_means.fit(window_reshaped)
 
-    def assess_barrier(self, time: int) -> float:
-        """
-        Calaulates quality function in specified point.
+    def predict(self, sample: list[float | np.float64]) -> np.ndarray:
+        """Classifies observations in the given sample based on training with barrier.
 
-        :param time: index of point in the given sample to calculate statistics relative to it.
+        :param sample: sample to classify.
         """
-        window_size = len(self.__window)
-        length = min(window_size - time, time)
-        start = max(0, time - length)
-        end = min(window_size, time + length)
-        labels = self.__model.labels_
-        left = sum(labels[start:time])
-        right = sum(labels[time:end])
-
-        return abs(right - left) / length
+        return self.__model.labels_
