@@ -13,6 +13,7 @@ numpy = "^2.0.0"
 scipy = "^1.14.0"
 matplotlib = "^3.9.1"
 scikit-learn = "^1.5.2"
+PyQt5 = "^5.15.11"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -24,6 +25,7 @@ pre-commit = "^3.7.1"
 pyyaml = "^6.0.1"
 matplotlib = "^3.9.1"
 ipykernel = "^6.29.5"
+hypothesis = "^6.122.1"
 
 
 [tool.black]

@@ -24,7 +24,7 @@ class SimpleDetector(IDetector):
         :param threshold: lower threshold for the maximum run length's probability.
         """
         self._threshold = threshold
-        assert 0.0 <= self._threshold <= 1.0
+        assert 0.0 <= self._threshold <= 1.0, "Threshold must be in [0.0, 1.0]"
 
     def detect(self, growth_probs: np.ndarray) -> bool:
         """
@@ -32,7 +32,7 @@ class SimpleDetector(IDetector):
         :param growth_probs: growth probabilities for run lengths at the time.
         :return: boolean indicating whether a changepoint occurred.
         """
-        return len(growth_probs) > 0 and growth_probs[len(growth_probs) - 1] < self._threshold
+        return len(growth_probs) > 0 and growth_probs[-1] < self._threshold
 
     def clear(self) -> None:
         """

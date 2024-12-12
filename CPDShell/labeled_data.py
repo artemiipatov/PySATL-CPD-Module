@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, MutableSequence
 from pathlib import Path
 
 import numpy
@@ -12,7 +12,7 @@ class LabeledCPData:
     """Class for generating and storing labeled data,
     needed in CPDShell"""
 
-    def __init__(self, raw_data: Sequence[float | numpy.float64], change_points: Sequence[int]) -> None:
+    def __init__(self, raw_data: MutableSequence[float | numpy.float64], change_points: MutableSequence[int]) -> None:
         """LabeledCPData object constructor
 
         :param: raw_data: data, that will be passed into CPD algo
@@ -28,6 +28,9 @@ class LabeledCPData:
     def __str__(self) -> str:
         """Shows main info about LabeledCPData object"""
         return f"data={self.raw_data}, change_points={self.change_points}"
+
+    def __len__(self):
+        return len(self.raw_data)
 
     @staticmethod
     def generate_cp_datasets(

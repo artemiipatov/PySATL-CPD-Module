@@ -16,7 +16,8 @@ class Classifier(ABC):
 
     @abstractmethod
     def train(self, sample: list[list[float | np.float64]], barrier: int) -> None:
-        """Trains classifier on the given sample.
+        """Trains binary classifier on the given sample.
+        The observations before barrier belong to the class 0, after barrier --- to the class 1.
 
         :param sample: sample for training classifier.
         :param barrier: index of observation that splits the given sample.
@@ -25,7 +26,7 @@ class Classifier(ABC):
 
     @abstractmethod
     def predict(self, sample: list[list[float | np.float64]]) -> np.ndarray:
-        """Classifies observations in the given sample based on training with barrier.
+        """Classifies the elements of a sample into one of two classes, based on training with the barrier.
 
         :param sample: sample to classify.
         """

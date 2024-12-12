@@ -24,6 +24,7 @@ class ConstantHazard(IHazard):
         :param rate: rate of an underlying exponential distribution.
         """
         self._rate = rate
+        assert self._rate >= 1.0, "Hazard rate cannot be less than 1.0"
 
     def hazard(self, run_lengths: np.ndarray) -> np.ndarray:
         """

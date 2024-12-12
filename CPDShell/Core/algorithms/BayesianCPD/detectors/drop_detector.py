@@ -25,7 +25,7 @@ class DropDetector(IDetector):
         self.__previous_growth_prob: None | float = None
 
         self._threshold = threshold
-        assert 0.0 <= self._threshold <= 1.0
+        assert 0.0 <= self._threshold <= 1.0, "Drop threshold must be in [0.0, 1.0]"
 
     def detect(self, growth_probs: np.ndarray) -> bool:
         """
@@ -36,13 +36,12 @@ class DropDetector(IDetector):
         if len(growth_probs) == 0:
             return False
 
-        last_growth_prob = growth_probs[len(growth_probs) - 1]
+        last_growth_prob = growth_probs[-1]
         if self.__previous_growth_prob is None:
             self.__previous_growth_prob = last_growth_prob
             return False
 
         drop = float(self.__previous_growth_prob - last_growth_prob)
-        assert drop >= 0.0
 
         return drop >= self._threshold
 

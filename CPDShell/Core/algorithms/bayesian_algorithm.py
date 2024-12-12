@@ -15,6 +15,12 @@ from CPDShell.Core.algorithms.BayesianCPD.abstracts.idetector import IDetector
 from CPDShell.Core.algorithms.BayesianCPD.abstracts.ihazard import IHazard
 from CPDShell.Core.algorithms.BayesianCPD.abstracts.ilikelihood import ILikelihood
 from CPDShell.Core.algorithms.BayesianCPD.abstracts.ilocalizer import ILocalizer
+from CPDShell.Core.algorithms.BayesianCPD.detectors.simple_detector import SimpleDetector
+from CPDShell.Core.algorithms.BayesianCPD.hazards.constant_hazard import ConstantHazard
+from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_unknown_mean_and_variance import (
+    GaussianUnknownMeanAndVariance,
+)
+from CPDShell.Core.algorithms.BayesianCPD.localizers.simple_localizer import SimpleLocalizer
 
 
 class BayesianAlgorithm(Algorithm):
@@ -28,14 +34,20 @@ class BayesianAlgorithm(Algorithm):
     """
 
     def __init__(
-        self, learning_steps: int, likelihood: ILikelihood, hazard: IHazard, detector: IDetector, localizer: ILocalizer
+        self,
+        learning_steps: int = 50,
+        likelihood: ILikelihood = GaussianUnknownMeanAndVariance(),
+        hazard: IHazard = ConstantHazard(rate=1.0 / (1.0 - 0.5 ** (1.0 / 500))),
+        detector: IDetector = SimpleDetector(threshold=0.04),
+        localizer: ILocalizer = SimpleLocalizer(),
     ):
         """
         Initializes a new instance of Bayesian algorithm module with given customization.
         :param learning_steps: number of steps to learn likelihood's parameters.
         :param likelihood: likelihood function for the given model.
-        :param hazard: hazard function for the given model.
+        :param hazard: hazard function for the given model. Default value is calculated for sample size of 500.
         :param detector: detector for change point detection from a run lengths distribution at the moment.
+            Default threshold value was obtained experimentally.
         :param localizer: localizer for change point localization from a run lengths distribution at the moment.
         """
         self._learning_steps = learning_steps

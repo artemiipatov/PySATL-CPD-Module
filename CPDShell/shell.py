@@ -1,15 +1,15 @@
 import time
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, MutableSequence
 from pathlib import Path
-from typing import Optional
 
 import numpy
 from matplotlib import pyplot as plt
 
 from CPDShell.Core.algorithms.graph_algorithm import Algorithm, GraphAlgorithm
 from CPDShell.Core.cpd_core import CPDCore
-from CPDShell.Core.scenario import Scenario
-from CPDShell.Core.scrubber.scrubber import Scrubber
+from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
+from CPDShell.Core.scrubber_scenario import ScrubberScenario
 from CPDShell.labeled_data import LabeledCPData
 
 
@@ -18,7 +18,7 @@ class CPContainer:
 
     def __init__(
         self,
-        data: Sequence[float | numpy.float64],
+        data: MutableSequence[float | numpy.float64],
         result: list[int],
         expected_result: list[int] | None,
         time_sec: float,
@@ -60,6 +60,53 @@ class CPContainer:
         method_output += f"Computation time (sec): {round(self.time_sec, 2)}"
         return method_output
 
+    def count_confusion_matrix(self, window: tuple[int, int] | None = None) -> tuple[int, int, int, int]:
+        """method for counting confusion matrix for hypothesis of equality of CPD results and expected
+        results on a window
+
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: tuple of integers (true-positive, true-negative, false-positive, false-negative)
+        """
+        if self.expected_result is None:
+            raise ValueError("this object is not provided with expected result, confusion matrix cannot be calculated")
+        return CPDResultsAnalyzer.count_confusion_matrix(self.result, self.expected_result, window)
+
+    def count_accuracy(self, window: tuple[int, int] | None = None) -> float:
+        """method for counting accuracy metric for hypothesis of equality of CPD results and expected
+        results on a window
+
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, accuracy metric
+        """
+        if self.expected_result is None:
+            raise ValueError("this object is not provided with expected result, accuracy cannot be calculated")
+        return CPDResultsAnalyzer.count_accuracy(self.result, self.expected_result, window)
+
+    def count_precision(self, window: tuple[int, int] | None = None) -> float:
+        """method for counting precision metric for hypothesis of equality of CPD results and expected
+        results on a window
+
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, precision metric
+        """
+        if self.expected_result is None:
+            raise ValueError("this object is not provided with expected result, precision cannot be calculated")
+        return CPDResultsAnalyzer.count_precision(self.result, self.expected_result, window)
+
+    def count_recall(self, window: tuple[int, int] | None = None) -> float:
+        """method for counting recall metric for hypothesis of equality of CPD results and expected results on a window
+
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, recall metric
+        """
+        if self.expected_result is None:
+            raise ValueError("this object is not provided with expected result, recall cannot be calculated")
+        return CPDResultsAnalyzer.count_recall(self.result, self.expected_result, window)
+
     def visualize(self, to_show: bool = True, output_directory: Path | None = None, name: str = "Graph") -> None:
         """method for building and analyzing graph
 
@@ -91,6 +138,92 @@ class CPContainer:
             plt.show()
 
 
+class CPDResultsAnalyzer:
+    """Class for counting confusion matrix and other metrics on CPD results"""
+
+    @staticmethod
+    def count_confusion_matrix(
+        result1: list[int | float], result2: list[int | float], window: tuple[int, int] | None = None
+    ) -> tuple[int, int, int, int]:
+        """static method for counting confusion matrix for hypothesis of equality of change points on a window
+
+        :param: result1: first array or list of change points, determined as prediction
+        :param: result2: second array or list of change points, determined as actual
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: tuple of integers (true-positive, true-negative, false-positive, false-negative)
+        """
+        if not result1 and not result2:
+            raise ValueError("no results and no predictions")
+        if window is None:
+            window = (min(result1 + result2), max(result1 + result2))
+        result1_set = set(result1)
+        result2_set = set(result2)
+        tp = tn = fp = fn = 0
+        for i in range(window[0], window[1]):
+            if i in result1_set:
+                if i in result2_set:
+                    tp += 1
+                    continue
+                fp += 1
+            elif i in result2_set:
+                fn += 1
+                continue
+            tn += 1
+        return tp, tn, fp, fn
+
+    @staticmethod
+    def count_accuracy(
+        result1: list[int | float], result2: list[int | float], window: tuple[int, int] | None = None
+    ) -> float:
+        """static method for counting accuracy metric for hypothesis of equality of change points on a window
+
+        :param: result1: first array or list of change points, determined as prediction
+        :param: result2: second array or list of change points, determined as actual
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, accuracy metric
+        """
+        tp, tn, fp, fn = CPDResultsAnalyzer.count_confusion_matrix(result1, result2, window)
+        if tp + tn == 0:
+            return 0.0
+        return (tp + tn) / (tp + tn + fp + fn)
+
+    @staticmethod
+    def count_precision(
+        result1: list[int | float], result2: list[int | float], window: tuple[int, int] | None = None
+    ) -> float:
+        """static method for counting precision metric for hypothesis of equality of change points on a window
+
+        :param: result1: first array or list of change points, determined as prediction
+        :param: result2: second array or list of change points, determined as actual
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, precision metric
+        """
+        tp, tn, fp, fn = CPDResultsAnalyzer.count_confusion_matrix(result1, result2, window)
+        if tp == 0:
+            return 0.0
+        return tp / (tp + fp)
+
+    @staticmethod
+    def count_recall(
+        result1: list[int | float], result2: list[int | float], window: tuple[int, int] | None = None
+    ) -> float:
+        """static method for counting recall metric for hypothesis of equality of change points on a window
+
+        :param: result1: first array or list of change points, determined as prediction
+        :param: result2: second array or list of change points, determined as actual
+        :param: window: tuple of two indices (start, stop), determines a window for hypothesis
+
+        :return: float, recall metric
+        """
+        tp, tn, fp, fn = CPDResultsAnalyzer.count_confusion_matrix(result1, result2, window)
+        if tp == 0:
+            return 0
+        return tp / (tp + fn)
+
+
 class CPDShell:
     """Class, that grants a convenient interface to
     work with CPD algorithms"""
@@ -98,25 +231,27 @@ class CPDShell:
     def __init__(
         self,
         data: Iterable[float | numpy.float64] | LabeledCPData,
-        cpd_algorithm: Optional["Algorithm"] = None,
-        scrubber_class: type[Scrubber] = Scrubber,
+        scenario: ScrubberScenario | None = None,
+        cpd_algorithm: Algorithm | None = None,
+        scrubber: Scrubber | None = None,
     ) -> None:
         """CPDShell object constructor
 
         :param: data: data for detection of CP
-        :param: CPDalgorithm: CPD algorithm, that will search for change points
-        :param: scrubber_class: class of preferable scrubber for splitting data into parts
+        :param: cpd_algorithm: CPD algorithm, that will search for change points
+        :param: scrubber: scrubber object for splitting data into parts
         """
         self._data: Iterable[float | numpy.float64] | LabeledCPData = data
-        scrubber_class = scrubber_class if scrubber_class is not None else Scrubber
         arg = 5
         cpd_algorithm = (
             cpd_algorithm if cpd_algorithm is not None else GraphAlgorithm(lambda a, b: abs(a - b) <= arg, 2)
         )
         self.cpd_core: CPDCore = CPDCore(
-            scrubber_class(Scenario(10, True), data.raw_data if isinstance(data, LabeledCPData) else data),
+            ScrubberScenario() if scenario is None else scenario,
+            data.raw_data if isinstance(data, LabeledCPData) else data,
+            LinearScrubber() if scrubber is None else scrubber,
             cpd_algorithm,
-        )  # if no algo or scrubber was given, then some standard
+        )
 
     @property
     def data(self) -> Iterable[float | numpy.float64]:
@@ -124,16 +259,13 @@ class CPDShell:
         return self._data
 
     @data.setter
-    def data(self, new_data: Sequence[float | numpy.float64]) -> None:
+    def data(self, new_data: MutableSequence[float | numpy.float64]) -> None:
         """Setter method for changing data
 
         :param: new_data: new data, to replace the current one
         """
         self._data = new_data
-        if isinstance(new_data, LabeledCPData):
-            self.cpd_core.scrubber.data = new_data.raw_data
-        else:
-            self.cpd_core.scrubber.data = new_data
+        self.cpd_core.data_controller.data = new_data.raw_data if isinstance(new_data, LabeledCPData) else new_data
 
     @property
     def scrubber(self) -> Scrubber:
@@ -141,20 +273,20 @@ class CPDShell:
         return self.cpd_core.scrubber
 
     @scrubber.setter
-    def scrubber(self, new_scrubber_class: type[Scrubber]) -> None:
+    def scrubber(self, new_scrubber: Scrubber) -> None:
         """Setter method for changing scrubber
 
-        :param: new_scrubber_class: new scrubber, to replace the current one
+        :param: new_scrubber: new scrubber object, to replace the current one
         """
-        self.cpd_core.scrubber = new_scrubber_class(self.cpd_core.scrubber.scenario, self._data)
+        self.cpd_core.scrubber = new_scrubber
 
     @property
-    def CPDalgorithm(self) -> Algorithm:
+    def cpd_algorithm(self) -> Algorithm:
         """Getter method for CPD algorithm param"""
         return self.cpd_core.algorithm
 
-    @CPDalgorithm.setter
-    def CPDalgorithm(self, new_algorithm: Algorithm) -> None:
+    @cpd_algorithm.setter
+    def cpd_algorithm(self, new_algorithm: Algorithm) -> None:
         """Setter method for changing CPD algorithm
 
         :param: new_algorithm: new CPD algorithm, to replace the current one
@@ -162,17 +294,17 @@ class CPDShell:
         self.cpd_core.algorithm = new_algorithm
 
     @property
-    def scenario(self) -> Scenario:
+    def scenario(self) -> ScrubberScenario:
         """Getter method for scenario param"""
-        return self.cpd_core.scrubber.scenario
+        return self.cpd_core.scenario
 
     @scenario.setter
-    def scenario(self, new_scenario: Scenario) -> None:
+    def scenario(self, new_scenario: ScrubberScenario) -> None:
         """Setter method for changing scenario
 
         :param: new_scenario: new scenario object, to replace the current one
         """
-        self.cpd_core.scrubber.scenario = new_scenario
+        self.cpd_core.scenario = new_scenario
 
     def change_scenario(self, change_point_number: int, to_localize: bool = False) -> None:
         """Method for editing scenario
@@ -180,10 +312,10 @@ class CPDShell:
         :param: change_point_number: number of change points user wants to detect
         :param: to_localize: bool value that states if it is necessary to localize change points
         """
-        self.cpd_core.scrubber.scenario = Scenario(change_point_number, to_localize)
+        self.cpd_core.scenario = ScrubberScenario(change_point_number, to_localize)
 
     def run_cpd(self) -> CPContainer:
-        """Execute CPD algorithm, returns ifrom dataclasses import dataclassts result and prints it
+        """Execute CPD algorithm and return container with its results
 
         :return: CPContainer object, containing algo result CP and expected CP if needed
         """

@@ -28,7 +28,6 @@ class DensityBasedAlgorithm(Algorithm):
         kde_values /= n * bandwidth * np.sqrt(2 * np.pi)
         return kde_values
 
-    @staticmethod
     def _calculate_weights(
         self,
         test_value: np.ndarray,

@@ -62,10 +62,10 @@ class GaussianUnknownMeanAndVariance(ILikelihood):
         :param observation: an observation from a sample.
         """
         mu_divider = self.__k_params + 1.0
-        assert np.count_nonzero(mu_divider) == mu_divider.shape[0]
+        assert np.count_nonzero(mu_divider) == mu_divider.shape[0], "Mu dividers cannot be 0.0"
 
         beta_divider = 2.0 * self.__k_params + 1.0
-        assert np.count_nonzero(beta_divider) == beta_divider.shape[0]
+        assert np.count_nonzero(beta_divider) == beta_divider.shape[0], "Beta dividers cannot be 0.0"
 
         new_mu_params = np.append([self.__mu_0], (self.__mu_params * self.__k_params + observation) / mu_divider)
         new_k_params = np.append([self.__k_0], self.__k_params + 1.0)
@@ -89,10 +89,10 @@ class GaussianUnknownMeanAndVariance(ILikelihood):
         """
 
         scales_divider = self.__alpha_params * self.__k_params
-        assert np.count_nonzero(scales_divider) == scales_divider.shape[0]
+        assert np.count_nonzero(scales_divider) == scales_divider.shape[0], "Scales cannot be 0.0"
 
         degrees_of_freedom = 2.0 * self.__alpha_params
-        scales = (self.__beta_params * (self.__k_params + 1.0)) / scales_divider
+        scales = np.sqrt((self.__beta_params * (self.__k_params + 1.0)) / scales_divider)
 
         predictive_probabilities = stats.t.pdf(
             x=observation,

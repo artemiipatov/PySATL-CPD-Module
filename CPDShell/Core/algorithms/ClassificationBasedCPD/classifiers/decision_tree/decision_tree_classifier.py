@@ -19,7 +19,7 @@ class DecisionTreeClassifier(Classifier):
 
     def __init__(self) -> None:
         """
-        Initializes a new instance of decision tree classifier classifier for cpd.
+        Initializes a new instance of decision tree classifier for cpd.
         """
         self.__model: sk.DecisionTreeClassifier | None = None
 

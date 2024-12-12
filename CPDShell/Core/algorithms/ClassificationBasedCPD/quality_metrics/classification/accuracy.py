@@ -25,7 +25,7 @@ class Accuracy(QualityMetric):
         """
         before = classes[:time]
         after = classes[time:]
-        before_length = len(before)
+        before_length = time
         sample_length = len(classes)
 
         true_positive = after.sum()

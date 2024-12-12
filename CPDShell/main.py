@@ -14,6 +14,7 @@ from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.svm.svm_classif
 from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.rf.rf_classifier import RFClassifier
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
+from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
 from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
 from CPDShell.shell import CPDShell
@@ -44,17 +45,17 @@ from CPDShell.labeled_data import LabeledCPData
 #     return abs(obs1 - obs2)
 
 
-# K = 5
-# KNN_THRESHOLD = 3.5
-# OFFSET_COEFF = 0.25
+# K = 7
+# THRESHOLD = 2.5
+# WINDOW_SIZE = 48
+# MOVEMENT_COEFF = 0.5
+# INDENT_COEFF = 0.25
+# CHANGE_POINT_NUMBER = 40
 
-# statistic = ThresholdOvercome(KNN_THRESHOLD)
-# knn_algorithm = KNNAlgorithm(metric, statistic, OFFSET_COEFF, K)
-# knn_cpd = CPDShell(data, knn_algorithm)
-
-# knn_cpd.scrubber.window_length = 32
-# knn_cpd.scrubber.movement_k = 0.5
-# knn_cpd.scenario.change_point_number = 100
+# statistic = ThresholdOvercome(THRESHOLD)
+# knn_algorithm = KNNAlgorithm(metric, statistic, INDENT_COEFF, K)
+# scrubber = LinearScrubber(WINDOW_SIZE, MOVEMENT_COEFF)
+# knn_cpd = CPDShell(data, cpd_algorithm=knn_algorithm, scrubber=scrubber)
 
 # res_knn = knn_cpd.run_cpd()
 # res_knn.visualize(True)
@@ -94,7 +95,6 @@ res_svm = svm_cpd.run_cpd()
 res_svm.visualize(True)
 print("SVM based algorithm")
 print(res_svm)
-
 
 # ROOT_DIR = Path()
 # SOURCE_DIR = f"experiments/stage_2_knn"

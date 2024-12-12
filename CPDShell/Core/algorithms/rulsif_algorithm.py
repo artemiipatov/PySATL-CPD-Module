@@ -50,7 +50,6 @@ class RulsifAlgorithm(DensityBasedAlgorithm):
         """
         window_sample = np.array(window)
         weights = self._calculate_weights(
-            self=self,
             test_value=window_sample,
             reference_value=window_sample,
             bandwidth=self.bandwidth,
@@ -70,7 +69,6 @@ class RulsifAlgorithm(DensityBasedAlgorithm):
         """
         window_sample = np.array(window)
         weights = self._calculate_weights(
-            self=self,
             test_value=window_sample,
             reference_value=window_sample,
             bandwidth=self.bandwidth,

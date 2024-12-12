@@ -5,9 +5,10 @@ from pathlib import Path
 import pytest
 
 from CPDShell.Core.algorithms.graph_algorithm import GraphAlgorithm
-from CPDShell.Core.scenario import Scenario
-from CPDShell.Core.scrubber.scrubber import Scrubber
-from CPDShell.shell import CPContainer, CPDShell, LabeledCPData
+from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
+from CPDShell.Core.scrubber_scenario import ScrubberScenario
+from CPDShell.shell import CPContainer, CPDResultsAnalyzer, CPDShell, LabeledCPData
 
 
 def custom_comparison(node1, node2):  # TODO: Remove it everywhere
@@ -16,67 +17,77 @@ def custom_comparison(node1, node2):  # TODO: Remove it everywhere
 
 
 class TestCPDShell:
-    shell_for_setter_getter = CPDShell(
-        [4, 3, 2, 1], cpd_algorithm=GraphAlgorithm(custom_comparison, 4), scrubber_class=Scrubber
+    shell_for_setter_getter = CPDShell([4, 3, 2, 1], cpd_algorithm=GraphAlgorithm(custom_comparison, 4))
+    shell_normal = CPDShell([1, 2, 3, 4], cpd_algorithm=GraphAlgorithm(custom_comparison, 4))
+    shell_default = CPDShell(
+        [3, 4, 5, 6], ScrubberScenario(10, True), cpd_algorithm=GraphAlgorithm(custom_comparison, 4)
     )
-    shell_normal = CPDShell([1, 2, 3, 4], cpd_algorithm=GraphAlgorithm(custom_comparison, 4), scrubber_class=Scrubber)
-    shell_default = CPDShell([3, 4, 5, 6], cpd_algorithm=GraphAlgorithm(custom_comparison, 4))
     shell_marked_data = CPDShell(
-        LabeledCPData([1, 2, 3, 4], [4, 5, 6, 7]), cpd_algorithm=GraphAlgorithm(custom_comparison, 4)
+        LabeledCPData([1, 2, 3, 4], [4, 5, 6, 7]),
+        cpd_algorithm=GraphAlgorithm(custom_comparison, 4),
     )
 
     def test_init(self) -> None:
         assert self.shell_normal._data == [1, 2, 3, 4]
-        assert self.shell_normal.cpd_core.scrubber.data == [1, 2, 3, 4]
+        assert self.shell_normal.cpd_core.data_controller.data == [1, 2, 3, 4]
         assert isinstance(self.shell_normal.cpd_core.algorithm, GraphAlgorithm)
 
         assert isinstance(self.shell_default.cpd_core.algorithm, GraphAlgorithm)
-        assert isinstance(self.shell_default.cpd_core.scrubber, Scrubber)
+        assert isinstance(self.shell_default.cpd_core.scrubber, LinearScrubber)
 
         assert isinstance(self.shell_marked_data._data, LabeledCPData)
 
         assert self.shell_marked_data._data.raw_data == [1, 2, 3, 4]
         assert self.shell_marked_data._data.change_points == [4, 5, 6, 7]
-        assert list(self.shell_marked_data.scrubber.data.__iter__()) == [1, 2, 3, 4]
+        assert list(self.shell_marked_data.cpd_core.data_controller.data.__iter__()) == [1, 2, 3, 4]
 
     def test_data_getter_setter(self) -> None:
         assert self.shell_for_setter_getter.data == [4, 3, 2, 1]
-        assert self.shell_for_setter_getter.cpd_core.scrubber.data == [4, 3, 2, 1]
+        assert self.shell_for_setter_getter.cpd_core.data_controller.data == [4, 3, 2, 1]
 
         self.shell_for_setter_getter.data = [1, 3, 4]
 
         assert self.shell_for_setter_getter.data == [1, 3, 4]
-        assert self.shell_for_setter_getter.cpd_core.scrubber.data == [1, 3, 4]
+        assert self.shell_for_setter_getter.cpd_core.data_controller.data == [1, 3, 4]
 
     def test_scrubber_setter(self) -> None:
         class TestNewScrubber(Scrubber):
-            pass
+            def restart(self) -> None:
+                pass
+
+            def get_windows(self):
+                pass
+
+            def add_change_points(self, window_change_points: list[int]) -> None:
+                pass
 
         previous_scrubber = self.shell_for_setter_getter.scrubber
-        self.shell_for_setter_getter.scrubber = TestNewScrubber
+        self.shell_for_setter_getter.scrubber = TestNewScrubber()
         assert isinstance(self.shell_for_setter_getter.scrubber, TestNewScrubber)
-        assert self.shell_for_setter_getter.scrubber.data == previous_scrubber.data
+        assert self.shell_for_setter_getter.scrubber._data == previous_scrubber._data
         assert self.shell_for_setter_getter.scrubber.scenario == previous_scrubber.scenario
 
-    def test_CPDalgorithm_getter_setter(self) -> None:
+    def test_cpd_algorithm_getter_setter(self) -> None:
         FIVE = 5
 
         class TestNewAlgo(GraphAlgorithm):
             pass
 
-        self.shell_for_setter_getter.CPDalgorithm = TestNewAlgo(custom_comparison, 5)
+        self.shell_for_setter_getter.cpd_algorithm = TestNewAlgo(custom_comparison, 5)
         assert isinstance(self.shell_for_setter_getter.cpd_core.algorithm, TestNewAlgo)
         assert self.shell_for_setter_getter.cpd_core.algorithm.threshold == FIVE
 
     def test_scenario_getter_setter(self) -> None:
-        self.shell_for_setter_getter.scenario = Scenario(20, False)
-        assert self.shell_for_setter_getter.cpd_core.scrubber.scenario == Scenario(20, False)
+        assert self.shell_for_setter_getter.scenario.max_window_cp_number == 10**9
+        assert self.shell_for_setter_getter.scenario.to_localize
+        self.shell_for_setter_getter.scenario = ScrubberScenario(20, False)
+        assert self.shell_for_setter_getter.cpd_core.scenario == ScrubberScenario(20, False)
 
     def test_change_scenario(self) -> None:
         self.shell_for_setter_getter.change_scenario(15, True)
-        assert self.shell_for_setter_getter.scenario == Scenario(15, True)
+        assert self.shell_for_setter_getter.scenario == ScrubberScenario(15, True)
 
-    def test_run_CPD(self) -> None:
+    def test_run_cpd(self) -> None:
         res_normal = self.shell_normal.run_cpd()
         res_def = self.shell_default.run_cpd()
         res_marked = self.shell_marked_data.run_cpd()
@@ -91,6 +102,60 @@ class TestCPDShell:
         assert res_marked.result_diff == [4, 5, 6, 7]
 
 
+class TestCPDResultsAnalyzer:
+    @pytest.mark.parametrize(
+        "result1, result2, window, expected",
+        [
+            ([4, 5, 6, 7], [3, 5, 6], None, (2, 1, 1, 1)),
+            ([4, 5, 6, 7], [3, 5, 6], (5, 6), (1, 0, 0, 0)),
+            ([4, 5, 6, 7], [3, 5, 6], (0, 100), (2, 97, 2, 1)),
+            ([4, 5, 6, 7], [3, 5, 6], (6, 6), (0, 0, 0, 0)),
+            ([3, 5, 6, 7], [4, 5, 6], None, (2, 1, 1, 1)),
+            ([], [4, 5, 6], None, (0, 0, 0, 2)),
+            ([3, 5, 6, 7], [], None, (0, 4, 3, 0)),
+        ],
+    )
+    def test_count_confusion_matrix(self, result1, result2, window, expected):
+        assert CPDResultsAnalyzer.count_confusion_matrix(result1, result2, window) == expected
+
+    def test_count_confusion_matrix_exception_case(self):
+        with pytest.raises(ValueError):
+            CPDResultsAnalyzer.count_confusion_matrix([], [])
+
+    @pytest.mark.parametrize(
+        "result1, result2, window, expected",
+        [
+            ([4, 5, 6, 7], [3, 5, 6], None, 0.6),
+            ([4, 5, 6, 7], [3, 5, 6], (5, 6), 1.0),
+            ([4, 5, 6, 7], [3, 5, 6], (6, 6), 0.0),
+        ],
+    )
+    def test_count_accuracy(self, result1, result2, window, expected):
+        assert CPDResultsAnalyzer.count_accuracy(result1, result2, window) == expected
+
+    @pytest.mark.parametrize(
+        "result1, result2, window, expected",
+        [
+            ([4, 5, 6, 7], [3, 5, 6], None, 2 / 3),
+            ([4, 5, 6, 7], [3, 5, 6], (5, 6), 1.0),
+            ([4, 5, 6, 7], [3, 5, 6], (6, 6), 0.0),
+        ],
+    )
+    def test_count_precision(self, result1, result2, window, expected):
+        assert CPDResultsAnalyzer.count_precision(result1, result2, window) == expected
+
+    @pytest.mark.parametrize(
+        "result1, result2, window, expected",
+        [
+            ([4, 5, 6, 7], [3, 5, 6], None, 2 / 3),
+            ([4, 5, 6, 7], [3, 5, 6], (5, 6), 1.0),
+            ([4, 5, 6, 7], [3, 5, 6], (6, 6), 0.0),
+        ],
+    )
+    def test_count_recall(self, result1, result2, window, expected):
+        assert CPDResultsAnalyzer.count_recall(result1, result2, window) == expected
+
+
 class TestCPContainer:
     cont_default1 = CPContainer([1] * 15, [1, 2, 3], [2, 3, 4], 10)
     cont_default2 = CPContainer([1] * 15, [1, 2, 3, 6, 8], [2, 3, 4, 6], 20)
@@ -100,7 +165,7 @@ class TestCPContainer:
         assert self.cont_default1.result_diff == [1, 4]
         assert self.cont_default2.result_diff == [1, 4, 8]
 
-    def test_result_diff_execption_case(self) -> None:
+    def test_result_diff_exeception_case(self) -> None:
         with pytest.raises(ValueError):
             self.cont_no_expected.result_diff
 
@@ -139,3 +204,7 @@ Computation time (sec): 5"""
         with tempfile.TemporaryDirectory() as tempdir:
             data.visualize(False, Path(tempdir), name)
             assert [f"{name}.png"] in [file_names for (_, _, file_names) in walk(tempdir)]
+
+    def test_mertic_exception_case(self):
+        with pytest.raises(ValueError):
+            self.cont_no_expected.count_confusion_matrix()

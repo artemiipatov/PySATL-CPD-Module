@@ -100,7 +100,7 @@ class KNNClassifier:
         if deviation == 0:
             # if the deviation is zero, it likely means that the time is 1 or the data is constant.
             # In this case we cannot detect any change-points.
-            # Thus we can return negative number that will be less than the statistics in this case.
+            # Thus, we can return negative number that will be less than the statistics in this case.
             return -k
 
         statistics = -(random_variable_value - expectation) / deviation

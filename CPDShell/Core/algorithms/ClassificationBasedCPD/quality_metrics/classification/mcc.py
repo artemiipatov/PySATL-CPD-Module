@@ -28,7 +28,7 @@ class MCC(QualityMetric):
         before = classes[:time]
         after = classes[time:]
         after_length = len(after)
-        before_length = len(before)
+        before_length = time
 
         true_positive = after.sum()
         false_positive = before.sum()
