@@ -65,7 +65,9 @@ class Scrubber:
                 return
 
         if window_change_points:
-            start, end = self.change_points[-1], self.change_points[-1] + self.window_length
+            delta = int(self.movement_k * self.window_length)
+            start = max(window_change_points[-1], delta) + self._next_window[0]
+            end = start + self.window_length
             self._next_window = (start, end)
         else:
             delta = int(self.movement_k * self.window_length)
