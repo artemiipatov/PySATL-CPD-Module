@@ -48,6 +48,8 @@ class KNNAlgorithm(Algorithm):
         self.__change_points: list[int] = []
         self.__change_points_count = 0
 
+        self.statistics_list: list[float | np.float64] = []
+
     @property
     def test_statistic(self) -> TestStatistic:
         return self.__test_statistic
@@ -96,6 +98,7 @@ class KNNAlgorithm(Algorithm):
         for time in range(first_point, last_point):
             quality = self.__classifier.assess_barrier(time)
             assessments.append(quality)
+            self.statistics_list.append(quality)
 
         change_points = self.__test_statistic.get_change_points(assessments)
 

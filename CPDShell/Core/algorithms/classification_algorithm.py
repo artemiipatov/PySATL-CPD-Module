@@ -90,10 +90,11 @@ class ClassificationAlgorithm(Algorithm):
 
         for time in range(first_point, last_point):
             train_sample, test_sample = ClassificationAlgorithm.__split_sample(sample)
-            self.__classifier.train(train_sample, int(time / 2))
+            train_sample = [[sample[i]] for i in range(first_point)] + train_sample + [[sample[i]] for i in range(last_point, len(sample))]
+            self.__classifier.train(train_sample, first_point + time // 2)
             classes = self.__classifier.predict(test_sample)
 
-            quality = self.__quality_metric.assess_barrier(classes, int(time / 2))
+            quality = self.__quality_metric.assess_barrier(classes, time // 2)
             assessments.append(quality)
             self.statistics_list.append(quality)
 

@@ -9,7 +9,8 @@ from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_o
 from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
 from CPDShell.labeled_data import LabeledCPData
 from CPDShell.shell import CPDShell
-from experiments.statistics_counting import StatisticsCounting
+from experiments.statistics_calculation import StatisticsCalculation
+from experiments.rates import Rates
 
 
 class ThresholdCalculation:
@@ -72,55 +73,63 @@ class ThresholdCalculation:
 
         return change_points_count / overall_count
 
-    def calculate_threshold_on_prepared_statistics(self, start_threshold: float, window_size: int, data_size: int, data_path: Path) -> float:
-        cur_threshold = start_threshold
-        cur_sig_level = self.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_path)
+    def calculate_threshold_on_prepared_statistics(self, threshold: float, window_size: int, data_size: int, dataset_path: Path, indent_factor: float, delta: int) -> float:
+        dataset = ThresholdCalculation.get_all_sample_dirs(dataset_path)
+
+        cur_threshold = threshold
+        cur_sig_level = ThresholdCalculation.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_size, dataset, indent_factor, delta)
         cur_difference = 1.0
 
         while abs(cur_sig_level - self.__significance_level) > self.__delta:
             print(cur_threshold)
             if cur_sig_level > self.__significance_level:
                 cur_threshold = cur_threshold + cur_difference
-                cur_sig_level = self.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_path)
+                cur_sig_level = ThresholdCalculation.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_size, dataset, indent_factor, delta)
 
                 if cur_sig_level < self.__significance_level + self.__delta:
                     cur_difference /= 2.0
             else:
                 cur_threshold = cur_threshold - cur_difference
-                cur_sig_level = self.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_path)
+                cur_sig_level = ThresholdCalculation.__calculate_significance_level_on_prepared_statistics(cur_threshold, window_size, data_size, dataset, indent_factor, delta)
 
                 if cur_sig_level > self.__significance_level - self.__delta:
                     cur_difference /= 2.0
 
         return cur_threshold
 
-    def __calculate_significance_level_on_prepared_statistics(threshold: float, window_size: int, data_path: Path) -> float:
-        change_points = StatisticsCounting.get_change_points(data_path, ThresholdOvercome(threshold), window_size)
-        change_points_count = len(change_points)
-        overall_count = len()
+    @staticmethod
+    def __calculate_significance_level_on_prepared_statistics(threshold: float, window_size: int, data_size: int, dataset_path: list[tuple[Path, str]], indent_factor: float, delta: int) -> float:
+        fpr_sum = 0
+        overall_count = len(dataset_path)
+        test_statistic = ThresholdOvercome(threshold)
 
-        return change_points_count / overall_count
+        for data_path in dataset_path:
+            fpr_sum += Rates.false_positive_rate(-1, data_path[0], test_statistic, data_size, indent_factor, window_size, delta)
+
+        return fpr_sum / overall_count
 
     @staticmethod
     def get_all_data(dataset_dir: Path) -> list[Sequence[float | numpy.float64]]:
         samples = ThresholdCalculation.get_all_sample_dirs(dataset_dir)
-        print(samples)
-        dataset = [LabeledCPData.read_generated_datasets(p)["normal"].raw_data for p in samples]
+        dataset = [LabeledCPData.read_generated_datasets(p[0])[p[1]].raw_data for p in samples]
 
         return dataset
 
     @staticmethod
-    def get_all_sample_dirs(dataset_dir: Path) -> list[Path]:
+    def get_all_sample_dirs(dataset_dir: Path) -> list[tuple[Path, str]]:
         root_content = os.listdir(dataset_dir)
         sample_paths = []
 
-        for file in root_content:
-            if not os.path.isdir(dataset_dir / file):
+        for name in root_content:
+            cur_path = dataset_dir / name
+
+            if not os.path.isdir(cur_path):
                 continue
 
-            if file.startswith("sample"):
-                sample_paths.append(dataset_dir / file)
+            if name.startswith("sample"):
+                distr_name = os.listdir(cur_path)[0]
+                sample_paths.append((cur_path, distr_name))
             else:
-                sample_paths.extend(ThresholdCalculation.get_all_sample_dirs(dataset_dir / file))
+                sample_paths.extend(StatisticsCalculation.get_all_sample_dirs(cur_path))
 
         return sample_paths
