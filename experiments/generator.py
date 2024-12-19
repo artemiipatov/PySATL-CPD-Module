@@ -1,23 +1,12 @@
 import csv
-from pathlib import Path
+from dataclasses import dataclass
 from enum import Enum
-from dataclasses import dataclass, field
+from pathlib import Path
 
 import yaml
 
 from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
-
-# SAMPLE_SIZE = 200
-# CP_LOCATION = 100
-
-# NUM_OF_SAMPLES = 250
-
-# DIR_NAME = f"normal_{NUM_OF_SAMPLES}"
-# DIR_PATH = f"/experiments/datasets/without_cp/{DIR_NAME}/"
-# CONFIG_NAME = "config.yml"
-
-# WORKING_DIR = Path()
 
 
 class VerboseSafeDumper(yaml.SafeDumper):
@@ -39,13 +28,11 @@ class Distribution:
     parameters: dict[str, float]
     length: int
 
+
 DistributionComposition = list[Distribution]
 
 
-class DistributionGenerator():
-    # def __init__(self, ) -> None:
-    #     self.__distributions = distributions
-
+class DistributionGenerator:
     @staticmethod
     def generate(distributions: list[DistributionComposition], sample_count: int, dest_path: Path):
         Path(dest_path).mkdir(parents=True, exist_ok=True)
@@ -54,7 +41,9 @@ class DistributionGenerator():
         DistributionGenerator.__generate_dataset(distributions_info, dest_path)
 
     @staticmethod
-    def __generate_configs(distributions: list[DistributionComposition], sample_count: int, dest_path: Path) -> list[tuple[str, int]]:
+    def __generate_configs(
+        distributions: list[DistributionComposition], sample_count: int, dest_path: Path
+    ) -> list[tuple[str, int]]:
         generated_distributions_info = []
 
         for distributionComp in distributions:
@@ -64,7 +53,10 @@ class DistributionGenerator():
             config = [
                 {
                     "name": name,
-                    "distributions": [{"type": d_conf.type, "length": d_conf.length, "parameters": d_conf.parameters} for d_conf in distributionComp]
+                    "distributions": [
+                        {"type": d_conf.type, "length": d_conf.length, "parameters": d_conf.parameters}
+                        for d_conf in distributionComp
+                    ],
                 }
             ]
 
@@ -90,14 +82,8 @@ class DistributionGenerator():
 
             for sample_num in range(sample_count):
                 print(f"Name: {name}. Sample num: {sample_num}")
-                Path(dest_path / f"{name}/sample_{sample_num}/").mkdir(
-                    parents=True, exist_ok=True
-                )
+                Path(dest_path / f"{name}/sample_{sample_num}/").mkdir(parents=True, exist_ok=True)
                 saver = DatasetSaver(dest_path / f"{name}/sample_{sample_num}/", True)
-                ScipyDatasetGenerator().generate_datasets(
-                    Path(dest_path / f"{name}/config.yaml"), saver
-                )
+                ScipyDatasetGenerator().generate_datasets(Path(dest_path / f"{name}/config.yaml"), saver)
 
-                Path(
-                    dest_path / f"{name}/sample_{sample_num}/{name}/sample.png"
-                ).unlink(missing_ok=True)
+                Path(dest_path / f"{name}/sample_{sample_num}/{name}/sample.png").unlink(missing_ok=True)

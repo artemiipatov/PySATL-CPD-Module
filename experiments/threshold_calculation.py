@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy
 
+from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
 from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
@@ -16,13 +17,13 @@ from experiments.rates import Rates
 class ThresholdCalculation:
     def __init__(
         self,
-        knn_algorithm: ClassificationAlgorithm,
+        cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
         scrubber: Scrubber,
         significance_level: float = 0.05,
-        with_localization: bool = False,
+        with_localization: bool = True,
         delta: float = 0.005,
     ) -> None:
-        self.__knn_algorithm = knn_algorithm
+        self.__knn_algorithm = cpd_algorithm
         self.__scubber_class = scrubber
         self.__significance_level = significance_level
         self.__with_localization = with_localization
