@@ -23,10 +23,10 @@ class Rates:
         return 1 - Rates.false_negative_rate(change_point_i, statistics_dir, test_statistic, dataset_size, indent_factor, window_size, delta)
     
     @staticmethod
-    def false_positive_rate(change_point_i: int, statistics_dir: Path, test_statistic: TestStatistic, dataset_size: int, indent_factor: float, window_size: int, delta: int):
+    def false_positive_rate(change_point_i: int, statistics_dir: Path, test_statistic: TestStatistic, dataset_size: int, window_size: int, delta: int):
         change_points = StatisticsCalculation.get_change_points(statistics_dir, test_statistic, window_size)
-        change_point_i = change_point_i - int(window_size * indent_factor) if change_point_i >= 0 else change_point_i
-        overall_count = (dataset_size - 2 * int(window_size * indent_factor)) // (2 * delta)
+        # change_point_i = change_point_i - int(window_size * indent_factor) if change_point_i >= 0 else change_point_i
+        overall_count = dataset_size // (2 * delta)
 
         start = (change_point_i - delta) % (2 * delta) if change_point_i >= 0 else 0
         predicted_positives = 1 if change_points[:start] else 0
