@@ -37,5 +37,5 @@ class StatisticsCalculation:
                 for stat in stats:
                     outfile.write(str(stat) + "\n")
 
-            cpd_algorithm.statistics_list = []
+            cpd_algorithm.free_statistics_list
             print(sample_dir[0])

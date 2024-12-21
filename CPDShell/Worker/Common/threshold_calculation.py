@@ -2,7 +2,7 @@ from pathlib import Path
 
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
 from CPDShell.Worker.Common.utils import Utils
-from experiments.rates import Rates
+from Experiments.rates import Rates
 
 
 class ThresholdCalculation:

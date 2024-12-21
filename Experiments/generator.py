@@ -9,11 +9,6 @@ from CPDShell.generator.generator import ScipyDatasetGenerator
 from CPDShell.generator.saver import DatasetSaver
 
 
-class VerboseSafeDumper(yaml.SafeDumper):
-    def ignore_aliases(self, data):
-        return True
-
-
 class DistributionType(Enum):
     NORMAL = 1
     EXPONENTIAL = 2
@@ -32,6 +27,11 @@ class Distribution:
 DistributionComposition = list[Distribution]
 
 
+class VerboseSafeDumper(yaml.SafeDumper):
+    def ignore_aliases(self, data):
+        return True
+
+
 class DistributionGenerator:
     @staticmethod
     def generate(distributions: list[DistributionComposition], sample_count: int, dest_path: Path):
@@ -46,8 +46,8 @@ class DistributionGenerator:
     ) -> list[tuple[str, int]]:
         generated_distributions_info = []
 
-        for distributionComp in distributions:
-            name = "-".join(map(lambda d: d.type.name, distributionComp))
+        for distribution_comp in distributions:
+            name = "-".join(map(lambda d: d.type.name, distribution_comp))
             generated_distributions_info.append((name, sample_count))
 
             config = [
@@ -55,7 +55,7 @@ class DistributionGenerator:
                     "name": name,
                     "distributions": [
                         {"type": d_conf.type, "length": d_conf.length, "parameters": d_conf.parameters}
-                        for d_conf in distributionComp
+                        for d_conf in distribution_comp
                     ],
                 }
             ]

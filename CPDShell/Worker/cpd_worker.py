@@ -20,7 +20,7 @@ class CPDWorker(Worker):
         scrubber: LinearScrubber,
         scenario: ScrubberScenario | None,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
-        dataset_path: Path,
+        dataset_path: Path | None,
         results_path: Path,
     ) -> None:
         """Function for finding change points in window
@@ -28,6 +28,8 @@ class CPDWorker(Worker):
         :param window: part of global data for finding change points
         :return: the number of change points in the window
         """
-        statistics_calculation = StatisticsCalculation(cpd_algorithm, scrubber)
-        statistics_calculation.calculate_statistics(dataset_path, results_path)
+        if dataset_path is not None:
+            statistics_calculation = StatisticsCalculation(cpd_algorithm, scrubber)
+            statistics_calculation.calculate_statistics(dataset_path, results_path)
+
         Utils.print_all_change_points(results_path, ThresholdOvercome(self.__threshold), self.__interval_length)

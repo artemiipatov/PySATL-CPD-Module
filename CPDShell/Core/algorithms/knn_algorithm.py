@@ -48,7 +48,7 @@ class KNNAlgorithm(Algorithm):
         self.__change_points: list[int] = []
         self.__change_points_count = 0
 
-        self.statistics_list: list[float | np.float64] = []
+        self.__statistics_list: list[float] = []
 
     @property
     def test_statistic(self) -> TestStatistic:
@@ -57,6 +57,10 @@ class KNNAlgorithm(Algorithm):
     @test_statistic.setter
     def test_statistic(self, test_statistic) -> None:
         self.__test_statistic = test_statistic
+
+    @property
+    def statistics_list(self) -> list[float]:
+        return self.__statistics_list
 
     def detect(self, window: Iterable[float | np.float64]) -> int:
         """Finds change points in window.
@@ -75,6 +79,9 @@ class KNNAlgorithm(Algorithm):
         """
         self.__process_data(window)
         return self.__change_points.copy()
+
+    def free_statistics_list(self) -> None:
+        self.__statistics_list = []
 
     def __process_data(self, window: Iterable[float | np.float64]) -> None:
         """

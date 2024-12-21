@@ -15,13 +15,18 @@ class ThresholdCalculationWorker(Worker):
         self.__sl_delta = sl_delta
         self.__sample_length = sample_length
         self.__interval_length = interval_length
+        self.__threshold = 0.0
+
+    @property
+    def threshold(self) -> float:
+        return self.__threshold
 
     def run(
         self,
         scrubber: LinearScrubber,
         scenario: ScrubberScenario | None,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
-        dataset_path: Path,
+        dataset_path: Path | None,
         results_path: Path,
     ) -> None:
         """Function for finding change points in window
@@ -29,8 +34,10 @@ class ThresholdCalculationWorker(Worker):
         :param window: part of global data for finding change points
         :return: the number of change points in the window
         """
-        statistics_calculation = StatisticsCalculation(cpd_algorithm, scrubber)
-        statistics_calculation.calculate_statistics(dataset_path, results_path)
+        if dataset_path is not None:
+            statistics_calculation = StatisticsCalculation(cpd_algorithm, scrubber)
+            statistics_calculation.calculate_statistics(dataset_path, results_path)
+
         threshold = ThresholdCalculation.calculate_threshold(
             self.__significance_level,
             1.0,
@@ -40,4 +47,7 @@ class ThresholdCalculationWorker(Worker):
             self.__interval_length,
             self.__sl_delta,
         )
-        print(threshold)
+
+        self.__threshold = threshold
+
+        print(f"Optimal threshold for significance level {self.__significance_level}: {threshold}")

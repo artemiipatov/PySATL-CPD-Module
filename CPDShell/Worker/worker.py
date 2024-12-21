@@ -16,7 +16,7 @@ class Worker(ABC):
         scrubber: LinearScrubber,
         scenario: ScrubberScenario | None,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
-        dataset_path: Path,
+        dataset_path: Path | None,
         results_path: Path,
     ) -> None:
         """Function for finding change points in window
