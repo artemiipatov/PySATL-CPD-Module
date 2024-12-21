@@ -1,24 +1,11 @@
 from pathlib import Path
 
-from CPDShell.Core.algorithms.bayesian_algorithm import BayesianAlgorithm
-from CPDShell.Core.algorithms.BayesianCPD.detectors.drop_detector import DropDetector
-from CPDShell.Core.algorithms.BayesianCPD.detectors.simple_detector import SimpleDetector
-from CPDShell.Core.algorithms.BayesianCPD.hazards.constant_hazard import ConstantHazard
-from CPDShell.Core.algorithms.BayesianCPD.likelihoods.gaussian_unknown_mean_and_variance import (
-    GaussianUnknownMeanAndVariance,
-)
-from CPDShell.Core.algorithms.BayesianCPD.localizers.simple_localizer import SimpleLocalizer
-from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
-from CPDShell.Core.algorithms.ClassificationBasedCPD.quality_metrics.classification.f1 import F1
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.svm.svm_classifier import SVMClassifier
-from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.rf.rf_classifier import RFClassifier
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
-from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
-from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
-from CPDShell.generator.generator import ScipyDatasetGenerator
-from CPDShell.generator.saver import DatasetSaver
-from CPDShell.shell import CPDShell
+from CPDShell.Core.algorithms.ClassificationBasedCPD.classifiers.svm.svm_classifier import SVMClassifier
+from CPDShell.Core.algorithms.ClassificationBasedCPD.quality_metrics.classification.f1 import F1
+from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
 from CPDShell.labeled_data import LabeledCPData
+from CPDShell.shell import CPDShell
 
 # path_string = "tests/test_CPDShell/test_configs/test_config_exp.yml"
 # distributions_name = "exp"
@@ -73,7 +60,7 @@ from CPDShell.labeled_data import LabeledCPData
 
 
 ROOT_DIR = Path()
-SOURCE_DIR = f"experiments/stage_2_knn"
+SOURCE_DIR = "experiments/stage_2_knn"
 DISTR_NAME = "beta-weibull"
 sample_dir = ROOT_DIR / SOURCE_DIR / f"{DISTR_NAME}/sample_0"
 cpd_data = LabeledCPData.read_generated_datasets(sample_dir)[DISTR_NAME].raw_data
@@ -119,7 +106,6 @@ print(res_svm)
 # res_rf.visualize(True)
 # print("RF based algorithm")
 # print(res_rf)
-
 
 
 # # Bayesian algorithm demo

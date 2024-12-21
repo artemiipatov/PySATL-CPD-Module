@@ -25,7 +25,6 @@ class Rates:
     @staticmethod
     def false_positive_rate(change_point_i: int, statistics_dir: Path, test_statistic: TestStatistic, dataset_size: int, window_size: int, delta: int):
         change_points = StatisticsCalculation.get_change_points(statistics_dir, test_statistic, window_size)
-        # change_point_i = change_point_i - int(window_size * indent_factor) if change_point_i >= 0 else change_point_i
         overall_count = dataset_size // (2 * delta)
 
         start = (change_point_i - delta) % (2 * delta) if change_point_i >= 0 else 0

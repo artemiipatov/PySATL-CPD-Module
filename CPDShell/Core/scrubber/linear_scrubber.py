@@ -32,6 +32,10 @@ class LinearScrubber(Scrubber):
         self._window_start = 0
         self._rewrite_data_index: int = 0
 
+    @property
+    def window_length(self) -> int:
+        return self._window_length
+
     def restart(self) -> None:
         self.change_points = []
         self.is_running = True

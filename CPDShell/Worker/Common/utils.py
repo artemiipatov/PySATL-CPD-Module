@@ -1,11 +1,11 @@
 import os
 from collections.abc import Sequence
 from pathlib import Path
-from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import TestStatistic
-from CPDShell.worker.statistics_calculation import StatisticsCalculation
-from CPDShell.labeled_data import LabeledCPData
 
 import numpy
+
+from CPDShell.Core.algorithms.ClassificationBasedCPD.abstracts.istatistic_test import TestStatistic
+from CPDShell.labeled_data import LabeledCPData
 
 
 class Utils:
@@ -17,11 +17,15 @@ class Utils:
         return data
 
     @staticmethod
-    def get_change_points(data: list[float | numpy.float64], test_statistic: TestStatistic, window_size: int) -> list[int]:
+    def get_change_points(
+        data: list[float | numpy.float64], test_statistic: TestStatistic, window_size: int
+    ) -> list[int]:
         change_points = []
 
         for start in range(0, len(data), window_size):
-            change_points += list(map(lambda x: x + start, test_statistic.get_change_points(data[start : start + window_size])))
+            change_points += list(
+                map(lambda x: x + start, test_statistic.get_change_points(data[start : start + window_size]))
+            )
 
         return change_points
 
