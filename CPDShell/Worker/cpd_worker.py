@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
@@ -11,12 +12,13 @@ from CPDShell.Worker.worker import Worker
 
 
 class CPDBenchmarkWorker(Worker):
-    def __init__(self, expected_change_points: list[int], interval_length: int) -> None:
+    def __init__(self, expected_change_points: list[int], interval_length: int, logger: logging.Logger) -> None:
         self.__expected_change_points = expected_change_points
         self.__interval_length = interval_length
 
         self.__average_time: float = 0.0
         self.__power: float = 0.0
+        self.__logger = logger
 
     def run(
         self,
@@ -49,6 +51,6 @@ class CPDBenchmarkWorker(Worker):
 
         self.__power = power / len(results)
         self.__average_time = sum(result.time_sec for result in results) / len(results)
-        print(f"Power: {self.__power}")
-        print(f"Average time: {self.__average_time}")
+        self.__logger.info(f"Power: {self.__power}")
+        self.__logger.info(f"Average time: {self.__average_time}")
         # Utils.print_all_change_points(results_path, ThresholdOvercome(self.__threshold), self.__interval_length)

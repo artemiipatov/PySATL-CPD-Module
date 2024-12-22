@@ -1,4 +1,5 @@
 from pathlib import Path
+import logging
 
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
@@ -9,12 +10,13 @@ from CPDShell.Worker.worker import Worker
 
 
 class ThresholdCalculationWorker(Worker):
-    def __init__(self, significance_level: float, sl_delta: float, sample_length: int, interval_length: int) -> None:
+    def __init__(self, significance_level: float, sl_delta: float, sample_length: int, interval_length: int, logger: logging.Logger) -> None:
         self.__significance_level = significance_level
         self.__sl_delta = sl_delta
         self.__sample_length = sample_length
         self.__interval_length = interval_length
         self.__threshold = 0.0
+        self.__logger = logger
 
     @property
     def threshold(self) -> float:
@@ -46,5 +48,4 @@ class ThresholdCalculationWorker(Worker):
         )
 
         self.__threshold = threshold
-
-        print(f"Optimal threshold for significance level {self.__significance_level}: {threshold}")
+        self.__logger.info(f"Optimal threshold for significance level {self.__significance_level}: {threshold}")
