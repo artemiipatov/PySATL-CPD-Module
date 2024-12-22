@@ -65,8 +65,10 @@ class DistributionGenerator:
     ) -> list[tuple[str, int]]:
         generated_distributions_info = []
 
-        for distribution_comp in distributions:
-            name = "-".join(map(lambda d: d.type.name, distribution_comp))
+        for i in range(len(distributions)):
+            distribution_comp = distributions[i]
+
+            name = f"{i}-" + "-".join(map(lambda d: d.type.name, distribution_comp))
             generated_distributions_info.append((name, sample_count))
 
             config = [
@@ -79,14 +81,14 @@ class DistributionGenerator:
                 }
             ]
 
-            Path(dest_path / name).mkdir(parents=True, exist_ok=True)
+            Path(dest_path / Path(name)).mkdir(parents=True, exist_ok=True)
             with open(dest_path / f"{name}/config.yaml", "w") as outfile:
                 yaml.dump(config, outfile, default_flow_style=False, sort_keys=False, Dumper=VerboseSafeDumper)
 
         return generated_distributions_info
 
     @staticmethod
-    def __generate_experiment_description(distributions_info: list[tuple[str, int]], dest_path: Path):
+    def __generate_experiment_description(distributions_info: list[tuple[str, int]], dest_path: Path) -> None:
         with open(dest_path / "experiment_description", "w", newline="") as f:
             write = csv.writer(f)
             write.writerow(["name", "samples_num"])
@@ -94,7 +96,7 @@ class DistributionGenerator:
             write.writerows(samples_description)
 
     @staticmethod
-    def __generate_dataset(distributions_info: list[tuple[str, int]], dest_path: Path):
+    def __generate_dataset(distributions_info: list[tuple[str, int]], dest_path: Path) -> None:
         for d_info in distributions_info:
             name = d_info[0]
             sample_count = d_info[1]

@@ -6,6 +6,7 @@ import yaml
 
 import Experiments.generator as Gen
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
+from CPDShell.Core.algorithms.ClassificationBasedCPD.test_statistics.threshold_overcome import ThresholdOvercome
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
 from CPDShell.Worker.threshold_calculation_worker import ThresholdCalculationWorker
@@ -41,7 +42,9 @@ class Experiments:
         ) -> None:
         distributions = Gen.DistributionGenerator.generate_by_config(config_path, dataset_path, sample_count)
 
-        for distr_comp in distributions:
+        for i in range(len(distributions)):
+            distr_comp = distributions[i]
+
             # Generating the dataset without change points.
             without_cp_path = dataset_path / "without_cp"
             Path(without_cp_path).mkdir(parents=True, exist_ok=True)
@@ -57,8 +60,8 @@ class Experiments:
             # Removing the generated dataset without change points.
             rmtree(without_cp_path)
 
-            distr_path = dataset_path / "-".join(map(lambda d: d.type.name, distr_comp))
-            cpd = CPDBenchmarkWorker(expected_change_points, interval_length, threshold)
+            # Run benchmark with calculated threshold.
+            distr_path = dataset_path / Path(f"{i}-" + "-".join(map(lambda d: d.type.name, distr_comp)))
+            cpd = CPDBenchmarkWorker(expected_change_points, interval_length)
+            self.__cpd_algorithm.test_statistic = ThresholdOvercome(threshold)
             cpd.run(self.__scrubber, self.__cpd_algorithm, distr_path, results_path)
-
-

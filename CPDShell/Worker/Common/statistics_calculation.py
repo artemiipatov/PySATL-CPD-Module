@@ -28,7 +28,7 @@ class StatisticsCalculation:
             stats = cpd_algorithm.statistics_list
             dest_path = (
                 dest_dir
-                / sample_dir[0].parts[sample_dir[0].parts.index(sample_dir[1]) - 1]
+                # / sample_dir[0].parts[sample_dir[0].parts.index(sample_dir[1]) - 1]
                 / sample_dir[1]
                 / sample_dir[0].name
             )

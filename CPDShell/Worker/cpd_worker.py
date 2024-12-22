@@ -11,10 +11,9 @@ from CPDShell.Worker.worker import Worker
 
 
 class CPDBenchmarkWorker(Worker):
-    def __init__(self, expected_change_points: list[int], interval_length: int, threshold: float) -> None:
+    def __init__(self, expected_change_points: list[int], interval_length: int) -> None:
         self.__expected_change_points = expected_change_points
         self.__interval_length = interval_length
-        self.__threshold = threshold
 
         self.__average_time: float = 0.0
         self.__power: float = 0.0
@@ -42,9 +41,9 @@ class CPDBenchmarkWorker(Worker):
             power += sum(
                 map(
                     lambda x: any(
-                        cp - self.__interval_length <= x <= cp + self.__interval_length for cp in self.__expected_change_points
+                        cp - self.__interval_length <= x <= cp + self.__interval_length for cp in result.result
                     ),
-                    result.result,
+                    self.__expected_change_points,
                 )
             ) / len(self.__expected_change_points)
 
