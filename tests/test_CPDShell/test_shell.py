@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from CPDShell.Core.algorithms.graph_algorithm import GraphAlgorithm
-from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.abstract_scrubber import LinearScubber
 from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
 from CPDShell.Core.scrubber_scenario import ScrubberScenario
 from CPDShell.shell import CPContainer, CPDResultsAnalyzer, CPDShell, LabeledCPData
@@ -51,7 +51,7 @@ class TestCPDShell:
         assert self.shell_for_setter_getter.cpd_core.data_controller.data == [1, 3, 4]
 
     def test_scrubber_setter(self) -> None:
-        class TestNewScrubber(Scrubber):
+        class TestNewScrubber(LinearScubber):
             def restart(self) -> None:
                 pass
 

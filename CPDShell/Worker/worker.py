@@ -4,7 +4,6 @@ from pathlib import Path
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
-from CPDShell.Core.scrubber_scenario import ScrubberScenario
 
 
 class Worker(ABC):
@@ -14,7 +13,6 @@ class Worker(ABC):
     def run(
         self,
         scrubber: LinearScrubber,
-        scenario: ScrubberScenario | None,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
         dataset_path: Path | None,
         results_path: Path,

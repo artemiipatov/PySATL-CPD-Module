@@ -23,8 +23,8 @@ class KNNGraph:
 
     def __init__(
         self,
-        window: Iterable[float | np.float64],
-        metric: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
+        window: Iterable[float],
+        metric: tp.Callable[[float, float], float],
         k=7,
         delta=1e-12,
     ) -> None:

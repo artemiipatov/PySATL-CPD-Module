@@ -23,7 +23,7 @@ class KNNAlgorithm(Algorithm):
 
     def __init__(
         self,
-        distance_func: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
+        distance_func: tp.Callable[[float, float], float],
         test_statistic: TestStatistic,
         indent_coeff: float,
         k=7,

@@ -3,26 +3,27 @@ from pathlib import Path
 
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
-from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.abstract_scrubber import LinearScubber
 from CPDShell.labeled_data import LabeledCPData
-from CPDShell.shell import CPDShell
+from CPDShell.shell import CPContainer, CPDShell
 from CPDShell.Worker.Common.utils import Utils
 
 
 class StatisticsCalculation:
     @staticmethod
     def calculate_statistics(
-        cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm, scrubber: Scrubber, datasets_dir: Path, dest_dir: Path
-    ):
+        cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm, scrubber: LinearScubber, datasets_dir: Path, dest_dir: Path
+    ) -> list[CPContainer]:
         """
         :param datasets_dir: Path where datasets are stored.
         """
         samples_dirs = Utils.get_all_sample_dirs(datasets_dir)
+        results = []
 
         for sample_dir in samples_dirs:
             data = LabeledCPData.read_generated_datasets(sample_dir[0])[sample_dir[1]].raw_data
             shell = CPDShell(data, cpd_algorithm=cpd_algorithm, scrubber=scrubber)
-            shell.run_cpd()
+            results.append(shell.run_cpd())
 
             stats = cpd_algorithm.statistics_list
             dest_path = (
@@ -37,5 +38,7 @@ class StatisticsCalculation:
                 for stat in stats:
                     outfile.write(str(stat) + "\n")
 
-            cpd_algorithm.free_statistics_list
+            cpd_algorithm.free_statistics_list()
             print(sample_dir[0])
+
+        return results

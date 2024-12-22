@@ -22,7 +22,7 @@ class KNNClassifier:
 
     def __init__(
         self,
-        metric: tp.Callable[[float, float], float] | tp.Callable[[np.float64, np.float64], float],
+        metric: tp.Callable[[float, float], float],
         k=7,
         delta: float = 1e-12,
     ) -> None:
@@ -38,7 +38,7 @@ class KNNClassifier:
         self.__metric = metric
         self.__delta = delta
 
-        self.__window: list[float | np.float64] | None = None
+        self.__window: list[float | np.float64] = []
         self.__knn_graph: KNNGraph | None = None
 
     def classify(self, window: Iterable[float | np.float64]) -> None:
@@ -94,8 +94,7 @@ class KNNClassifier:
         variance = (expectation / k) * (h * (sum_1 + k - (2 * k**2 / (n - 1))) + (1 - h) * (sum_2 - k**2))
         deviation = sqrt(variance)
 
-        permutation: np.array = np.arange(window_size)
-        random_variable_value = self.__calculate_random_variable(permutation, time, window_size)
+        random_variable_value = self.__calculate_random_variable(time, window_size)
 
         if deviation == 0:
             # if the deviation is zero, it likely means that the time is 1 or the data is constant.
@@ -107,7 +106,7 @@ class KNNClassifier:
 
         return statistics
 
-    def __calculate_random_variable(self, permutation: np.array, t: int, window_size: int) -> int:
+    def __calculate_random_variable(self, t: int, window_size: int) -> int:
         """
         Calculates a random variable from a permutation and a fixed point.
 
@@ -117,9 +116,7 @@ class KNNClassifier:
         """
 
         def b(i: int, j: int) -> bool:
-            pi = permutation[i]
-            pj = permutation[j]
-            return (pi <= t < pj) or (pj <= t < pi)
+            return (i <= t < j) or (j <= t < i)
 
         s = sum(
             (self.__knn_graph.check_for_neighbourhood(i, j) + self.__knn_graph.check_for_neighbourhood(j, i)) * b(i, j)

@@ -2,6 +2,7 @@ import csv
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+import typing as tp
 
 import yaml
 
@@ -10,11 +11,11 @@ from CPDShell.generator.saver import DatasetSaver
 
 
 class DistributionType(Enum):
-    NORMAL = 1
-    EXPONENTIAL = 2
-    UNIFORM = 3
-    WEIBULL = 4
-    BETA = 5
+    normal = 1
+    exponential = 2
+    uniform = 3
+    weibull = 4
+    beta = 5
 
 
 @dataclass
@@ -41,6 +42,24 @@ class DistributionGenerator:
         DistributionGenerator.__generate_dataset(distributions_info, dest_path)
 
     @staticmethod
+    def generate_by_config(config_path: Path, dataset_path: Path, sample_count: int) -> list[DistributionComposition]:
+        with open(config_path) as stream:
+            loaded_config: list[dict[str, tp.Any]] = yaml.safe_load(stream)
+
+        distributions: list[DistributionComposition] = []
+
+        for distr_comp_config in loaded_config:
+            distr_comp: DistributionComposition = [
+                Distribution(DistributionType[distr_config["type"]], distr_config["parameters"], distr_config["length"])
+                for distr_config in distr_comp_config["distributions"]
+            ]
+            distributions.append(distr_comp)
+
+        DistributionGenerator.generate(distributions, sample_count, dataset_path)
+
+        return distributions
+
+    @staticmethod
     def __generate_configs(
         distributions: list[DistributionComposition], sample_count: int, dest_path: Path
     ) -> list[tuple[str, int]]:
@@ -54,8 +73,8 @@ class DistributionGenerator:
                 {
                     "name": name,
                     "distributions": [
-                        {"type": d_conf.type, "length": d_conf.length, "parameters": d_conf.parameters}
-                        for d_conf in distribution_comp
+                        {"type": distr_conf.type.name, "length": distr_conf.length, "parameters": distr_conf.parameters}
+                        for distr_conf in distribution_comp
                     ],
                 }
             ]
@@ -63,6 +82,8 @@ class DistributionGenerator:
             Path(dest_path / name).mkdir(parents=True, exist_ok=True)
             with open(dest_path / f"{name}/config.yaml", "w") as outfile:
                 yaml.dump(config, outfile, default_flow_style=False, sort_keys=False, Dumper=VerboseSafeDumper)
+
+        return generated_distributions_info
 
     @staticmethod
     def __generate_experiment_description(distributions_info: list[tuple[str, int]], dest_path: Path):

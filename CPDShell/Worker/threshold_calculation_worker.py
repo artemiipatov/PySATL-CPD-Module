@@ -3,7 +3,6 @@ from pathlib import Path
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
-from CPDShell.Core.scrubber_scenario import ScrubberScenario
 from CPDShell.Worker.Common.statistics_calculation import StatisticsCalculation
 from CPDShell.Worker.Common.threshold_calculation import ThresholdCalculation
 from CPDShell.Worker.worker import Worker
@@ -24,7 +23,6 @@ class ThresholdCalculationWorker(Worker):
     def run(
         self,
         scrubber: LinearScrubber,
-        scenario: ScrubberScenario | None,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
         dataset_path: Path | None,
         results_path: Path,
@@ -35,8 +33,7 @@ class ThresholdCalculationWorker(Worker):
         :return: the number of change points in the window
         """
         if dataset_path is not None:
-            statistics_calculation = StatisticsCalculation(cpd_algorithm, scrubber)
-            statistics_calculation.calculate_statistics(dataset_path, results_path)
+            StatisticsCalculation.calculate_statistics(cpd_algorithm, scrubber, dataset_path, results_path)
 
         threshold = ThresholdCalculation.calculate_threshold(
             self.__significance_level,

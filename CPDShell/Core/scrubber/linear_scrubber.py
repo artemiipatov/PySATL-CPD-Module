@@ -10,10 +10,10 @@ from collections.abc import Iterable, Sequence
 
 import numpy
 
-from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.abstract_scrubber import LinearScubber
 
 
-class LinearScrubber(Scrubber):
+class LinearScrubber(LinearScubber):
     """A linear scrubber for dividing data into windows by moving them through data"""
 
     def __init__(

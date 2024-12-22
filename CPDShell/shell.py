@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from CPDShell.Core.algorithms.graph_algorithm import Algorithm, GraphAlgorithm
 from CPDShell.Core.cpd_core import CPDCore
-from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.abstract_scrubber import LinearScubber
 from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
 from CPDShell.Core.scrubber_scenario import ScrubberScenario
 from CPDShell.labeled_data import LabeledCPData
@@ -233,7 +233,7 @@ class CPDShell:
         data: Iterable[float | numpy.float64] | LabeledCPData,
         scenario: ScrubberScenario | None = None,
         cpd_algorithm: Algorithm | None = None,
-        scrubber: Scrubber | None = None,
+        scrubber: LinearScubber | None = None,
     ) -> None:
         """CPDShell object constructor
 
@@ -268,12 +268,12 @@ class CPDShell:
         self.cpd_core.data_controller.data = new_data.raw_data if isinstance(new_data, LabeledCPData) else new_data
 
     @property
-    def scrubber(self) -> Scrubber:
+    def scrubber(self) -> LinearScubber:
         """Getter method for scrubber"""
         return self.cpd_core.scrubber
 
     @scrubber.setter
-    def scrubber(self, new_scrubber: Scrubber) -> None:
+    def scrubber(self, new_scrubber: LinearScubber) -> None:
         """Setter method for changing scrubber
 
         :param: new_scrubber: new scrubber object, to replace the current one

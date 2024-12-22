@@ -2,7 +2,7 @@ from pathlib import Path
 
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
-from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
+from CPDShell.Core.scrubber.linear_scrubber import LinearScrubber
 from CPDShell.Worker.threshold_calculation_worker import ThresholdCalculationWorker
 import Experiments.generator as Gen
 
@@ -11,7 +11,7 @@ class ThresholdCalculation:
     def __init__(
         self,
         cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm,
-        scrubber: Scrubber,
+        scrubber: LinearScrubber,
         interval_length: int,
         significance_level: float = 0.03,
         delta: float = 0.005,
@@ -30,7 +30,8 @@ class ThresholdCalculation:
         """
         if dataset_path is not None:
             Gen.DistributionGenerator.generate([[distribution]], sample_count, dataset_path)
-            worker = ThresholdCalculationWorker(self.__significance_level, self.__delta, distribution.length, self.__interval_length)
 
-        threshold = worker.run(self.__scrubber, None, self.__cpd_algorithm, dataset_path, results_path)
-        return threshold
+        worker = ThresholdCalculationWorker(self.__significance_level, self.__delta, distribution.length, self.__interval_length)
+        worker.run(self.__scrubber, self.__cpd_algorithm, dataset_path, results_path)
+
+        return worker.threshold
