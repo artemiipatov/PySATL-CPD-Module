@@ -4,6 +4,7 @@ from shutil import rmtree
 
 import logging
 import yaml
+import datetime
 
 import Experiments.generator as Gen
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
@@ -14,7 +15,7 @@ from CPDShell.Worker.threshold_calculation_worker import ThresholdCalculationWor
 from CPDShell.Worker.cpd_worker import CPDBenchmarkWorker
 
 
-SAMPLE_COUNT_FOR_THRESHOLD_CALC = 100
+SAMPLE_COUNT_FOR_THRESHOLD_CALC = 70
 WITHOUT_CP_SAMPLE_LENGTH = 200
 
 class Experiments:
@@ -48,7 +49,12 @@ class Experiments:
         for i in range(len(distributions)):
             distr_comp = distributions[i]
 
-            self.__logger.info(f"Distribution {distr_comp}")
+            self.__logger.info(datetime.datetime.now())
+            self.__logger.info("Distribution description start.")
+            for distr in distr_comp:
+                self.__logger.info(", ".join([f"type: {distr.type.name}", f"parameters: {distr.parameters}",  f"length: {distr.length}"]))
+            self.__logger.info("Distribution description end.")
+
             # Generating the dataset without change points.
             without_cp_path = dataset_path / "without_cp"
             Path(without_cp_path).mkdir(parents=True, exist_ok=True)
