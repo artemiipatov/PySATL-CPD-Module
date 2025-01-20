@@ -3,7 +3,7 @@ from pathlib import Path
 
 from CPDShell.Core.algorithms.classification_algorithm import ClassificationAlgorithm
 from CPDShell.Core.algorithms.knn_algorithm import KNNAlgorithm
-from CPDShell.Core.scrubber.abstract_scrubber import LinearScubber
+from CPDShell.Core.scrubber.abstract_scrubber import Scrubber
 from CPDShell.labeled_data import LabeledCPData
 from CPDShell.shell import CPContainer, CPDShell
 from CPDShell.Worker.Common.utils import Utils
@@ -12,7 +12,7 @@ from CPDShell.Worker.Common.utils import Utils
 class StatisticsCalculation:
     @staticmethod
     def calculate_statistics(
-        cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm, scrubber: LinearScubber, datasets_dir: Path, dest_dir: Path
+        cpd_algorithm: ClassificationAlgorithm | KNNAlgorithm, scrubber: Scrubber, datasets_dir: Path, dest_dir: Path
     ) -> list[CPContainer]:
         """
         :param datasets_dir: Path where datasets are stored.
@@ -28,7 +28,6 @@ class StatisticsCalculation:
             stats = cpd_algorithm.statistics_list
             dest_path = (
                 dest_dir
-                # / sample_dir[0].parts[sample_dir[0].parts.index(sample_dir[1]) - 1]
                 / sample_dir[1]
                 / sample_dir[0].name
             )

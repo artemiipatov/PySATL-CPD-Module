@@ -14,7 +14,7 @@ import numpy
 from CPDShell.Core.scrubber_scenario import ScrubberScenario
 
 
-class LinearScubber(ABC):
+class Scrubber(ABC):
     """A scrubber for dividing data into windows
     and subsequent processing of data windows
     by change point detection algorithms

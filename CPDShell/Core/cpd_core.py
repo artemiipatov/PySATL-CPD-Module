@@ -4,7 +4,7 @@ import numpy
 
 from .algorithms.graph_algorithm import Algorithm
 from .data_controller import DataController
-from .scrubber.abstract_scrubber import LinearScubber
+from .scrubber.abstract_scrubber import Scrubber
 from .scrubber_scenario import ScrubberScenario
 
 
@@ -15,7 +15,7 @@ class CPDCore:
         self,
         scenario: ScrubberScenario,
         data: Sequence[float | numpy.float64],
-        scrubber: LinearScubber,
+        scrubber: Scrubber,
         algorithm: Algorithm,
         scrubber_data_size: int = 2000,
     ) -> None:
