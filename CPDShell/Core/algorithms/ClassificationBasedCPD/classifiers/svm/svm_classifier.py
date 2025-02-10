@@ -42,4 +42,6 @@ class SVMClassifier(Classifier):
 
         :param sample: sample to classify.
         """
+        assert self.__model is not None, "classifier is None"
+
         return self.__model.predict(sample)

@@ -11,6 +11,9 @@ class Distributions(Enum):
     WEIBULL = "weibull"
     UNIFORM = "uniform"
     BETA = "beta"
+    GAMMA = "gamma"
+    T = "t"
+    LOGNORM = "lognorm"
 
     def __str__(self):
         return self.value
@@ -38,19 +41,17 @@ class Distribution(Protocol):
 
     @staticmethod
     def from_str(name: str, params: dict[str, str]) -> "Distribution":
-        match name:
-            case Distributions.NORMAL.value:
-                return NormalDistribution.from_params(params)
-            case Distributions.EXPONENTIAL.value:
-                return ExponentialDistribution.from_params(params)
-            case Distributions.WEIBULL.value:
-                return WeibullDistribution.from_params(params)
-            case Distributions.UNIFORM.value:
-                return UniformDistribution.from_params(params)
-            case Distributions.BETA.value:
-                return BetaDistribution.from_params(params)
-            case _:
-                raise NotImplementedError()
+        distributions = {
+            Distributions.NORMAL.value: NormalDistribution,
+            Distributions.EXPONENTIAL.value: ExponentialDistribution,
+            Distributions.WEIBULL.value: WeibullDistribution,
+            Distributions.UNIFORM.value: UniformDistribution,
+            Distributions.BETA.value: BetaDistribution,
+            Distributions.GAMMA.value: GammaDistribution,
+            Distributions.T.value: TDistribution,
+            Distributions.LOGNORM.value: LogNormDistribution,
+        }
+        return distributions[name].from_params(params)
 
 
 class ScipyDistribution(Distribution):
@@ -94,7 +95,10 @@ class NormalDistribution(ScipyDistribution):
         }
 
     def scipy_sample(self, length: int) -> np.ndarray:
-        return ss.norm.rvs(loc=self.mean, scale=self.variance, size=length)
+        return ss.norm(loc=self.mean, scale=self.variance).rvs(size=length)
+
+    def scipy_sample_trunc(self, length: int, lb: float, ub: float) -> np.ndarray:
+        return ss.truncnorm(lb=lb, ub=ub, loc=self.mean, scale=self.variance).rvs(size=length)
 
     @staticmethod
     def from_params(params: dict[str, str]) -> "NormalDistribution":
@@ -136,7 +140,10 @@ class ExponentialDistribution(ScipyDistribution):
         }
 
     def scipy_sample(self, length: int) -> np.ndarray:
-        return ss.expon.rvs(scale=1 / self.rate, size=length)
+        return ss.expon(scale=1 / self.rate).rvs(size=length)
+
+    def scipy_sample_trunc(self, length: int, lb: float, ub: float) -> np.ndarray:
+        return ss.truncexpon(lb=lb, ub=ub, scale=1 / self.rate).rvs(size=length)
 
     @staticmethod
     def from_params(params: dict[str, str]) -> "ExponentialDistribution":
@@ -178,6 +185,9 @@ class WeibullDistribution(ScipyDistribution):
 
     def scipy_sample(self, length: int) -> np.ndarray:
         return ss.weibull_min(c=self.shape, scale=1 / self.scale).rvs(size=length)
+
+    def scipy_sample_trunc(self, length: int, lb: float, ub: float) -> np.ndarray:
+        return ss.truncweibull_min(lb=lb, ub=ub, c=self.shape, scale=1 / self.scale).rvs(size=length)
 
     @staticmethod
     def from_params(params: dict[str, str]) -> "WeibullDistribution":
@@ -232,13 +242,13 @@ class UniformDistribution(ScipyDistribution):
         if len(params) != num_params:
             raise ValueError(
                 "Uniform distribution must have 2 parameters: "
-                + f"{UniformDistribution.min}"
-                + f"{UniformDistribution.max}"
+                + f"{UniformDistribution.MIN_KEY}"
+                + f"{UniformDistribution.MAX_KEY}"
             )
         min_value: float = float(params[UniformDistribution.MIN_KEY])
         max_value: float = float(params[UniformDistribution.MAX_KEY])
         if min_value >= max_value:
-            raise "Max must be greater than min value"
+            raise ValueError("Max must be greater than min value")
         return UniformDistribution(min_value, max_value)
 
 
@@ -272,6 +282,9 @@ class BetaDistribution(ScipyDistribution):
 
     def scipy_sample(self, length: int) -> np.ndarray:
         return ss.beta(a=self.alpha, b=self.beta).rvs(size=length)
+    
+    def scipy_sample_trunc(self, length: int, lb: float, ub: float) -> np.ndarray:
+        return ss.truncate(ss.beta(a=self.alpha, b=self.beta), lb=lb, ub=ub).rvs(size=length)
 
     @staticmethod
     def from_params(params: dict[str, str]) -> "BetaDistribution":
@@ -285,3 +298,122 @@ class BetaDistribution(ScipyDistribution):
         if alpha <= 0 or beta <= 0:
             raise ValueError("Alpha and beta must be greater than zero")
         return BetaDistribution(alpha, beta)
+
+
+class GammaDistribution(ScipyDistribution):
+    """
+    Description of gamma distribution with shape and scale parameters.
+    """
+
+    ALPHA_KEY: Final[str] = "alpha"
+    BETA_KEY: Final[str] = "beta"
+
+    alpha: float
+    beta: float
+
+    def __init__(self, alpha_value: float, beta_value: float):
+        if alpha_value <= 0 or beta_value <= 0:
+            raise ValueError("Alpha and beta must be greater than zero")
+        self.alpha = alpha_value
+        self.beta = beta_value
+
+    @property
+    def name(self) -> str:
+        return str(Distributions.GAMMA)
+
+    @property
+    def params(self) -> dict[str, str]:
+        return {
+            GammaDistribution.ALPHA_KEY: str(self.alpha),
+            GammaDistribution.BETA_KEY: str(self.beta),
+        }
+
+    def scipy_sample(self, length: int) -> np.ndarray:
+        return ss.gamma(a=self.alpha, scale=1 / self.beta).rvs(size=length)
+
+    @staticmethod
+    def from_params(params: dict[str, str]) -> "GammaDistribution":
+        num_params = 2
+        if len(params) != num_params:
+            raise ValueError(
+                f"Gamma  must have 2 parameters: {GammaDistribution.ALPHA_KEY}, {GammaDistribution.BETA_KEY}"
+            )
+        alpha = float(params[GammaDistribution.ALPHA_KEY])
+        beta = float(params[GammaDistribution.BETA_KEY])
+        if alpha <= 0 or beta <= 0:
+            raise ValueError("Alpha and beta for gamma distributions must be greater than zero")
+        return GammaDistribution(alpha, beta)
+
+
+class TDistribution(ScipyDistribution):
+    """
+    Description of Student's t-distribution with the degrees of freedom parameter.
+    """
+
+    N_KEY: Final[str] = "n"
+
+    n: int
+
+    def __init__(self, n_value: int) -> None:
+        if n_value <= 0:
+            raise ValueError("Degrees of freedom must be positive integer number")
+        self.n = n_value
+
+    @property
+    def name(self) -> str:
+        return str(Distributions.T)
+
+    @property
+    def params(self) -> dict[str, str]:
+        return {
+            TDistribution.N_KEY: str(self.n),
+        }
+
+    def scipy_sample(self, length: int) -> np.ndarray:
+        return ss.t(df=self.n).rvs(size=length)
+
+    @staticmethod
+    def from_params(params: dict[str, str]) -> "TDistribution":
+        num_params = 1
+        if len(params) != num_params:
+            raise ValueError(f"Student's distribution must have 1 parameter: {TDistribution.N_KEY}")
+        n = int(params[TDistribution.N_KEY])
+        if n <= 0:
+            raise ValueError("n (degrees of freedom) must be positive integer")
+        return TDistribution(n)
+
+
+class LogNormDistribution(ScipyDistribution):
+    """
+    Description of log normal distributionn with one parameter
+    """
+
+    S_KEY: Final[str] = "s"
+
+    s: float
+
+    def __init__(self, s_value: float) -> None:
+        if s_value <= 0:
+            raise ValueError("S parameter must be positive number")
+        self.s = s_value
+
+    @property
+    def name(self) -> str:
+        return str(Distributions.LOGNORM)
+
+    @property
+    def params(self) -> dict[str, str]:
+        return {
+            LogNormDistribution.S_KEY: str(self.s),
+        }
+
+    def scipy_sample(self, length: int) -> np.ndarray:
+        return ss.lognorm(s=self.s).rvs(size=length)
+
+    @staticmethod
+    def from_params(params: dict[str, str]) -> "LogNormDistribution":
+        num_params = 1
+        if len(params) != num_params:
+            raise ValueError(f"Log normal distribution must have 1 parameter: {LogNormDistribution.S_KEY}")
+        s = float(params[LogNormDistribution.S_KEY])
+        return LogNormDistribution(s)

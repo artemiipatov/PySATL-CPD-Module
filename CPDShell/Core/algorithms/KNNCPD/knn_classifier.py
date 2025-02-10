@@ -107,7 +107,7 @@ class KNNClassifier:
 
         return statistics
 
-    def __calculate_random_variable(self, permutation: np.array, t: int, window_size: int) -> int:
+    def __calculate_random_variable(self, permutation: np.ndarray, t: int, window_size: int) -> int:
         """
         Calculates a random variable from a permutation and a fixed point.
 
